@@ -1,0 +1,2 @@
+# EJS generated database (rebuild with: python3 scripts/adr-db.py sync)
+.ejs.db

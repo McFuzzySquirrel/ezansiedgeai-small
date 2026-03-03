@@ -1,0 +1,33 @@
+# Large model files — do NOT commit these to git
+# Models should be downloaded separately or built via tools/
+
+# GGUF (llama.cpp quantized models)
+*.gguf
+
+# ONNX models
+*.onnx
+
+# PyTorch model files
+*.bin
+*.pt
+*.pth
+
+# Safetensors (Hugging Face format)
+*.safetensors
+
+# Other common model artifacts
+*.h5
+*.tflite
+*.mlmodel
+*.mlpackage
+
+# Model download temp files
+*.tmp
+*.partial
+
+# Keep README files and configuration
+!README.md
+!*.json
+!*.yaml
+!*.yml
+!.gitignore
