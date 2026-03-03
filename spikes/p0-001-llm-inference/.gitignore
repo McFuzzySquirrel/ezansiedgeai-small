@@ -1,0 +1,13 @@
+# Spike-local ignores
+.venv/
+__pycache__/
+*.pyc
+
+# Downloaded models (large files)
+models/*.gguf
+models/*.onnx
+models/*.bin
+
+# Benchmark results (regenerated)
+results/*.json
+results/*.csv
