@@ -17,7 +17,7 @@
 
 ### Sequencing Principle
 
-Each phase builds on the previous one. Do not start Phase N+1 work until Phase N's P0 items have acceptance criteria met and are verified on a low-spec device emulator (2 GB RAM, API 29).
+Each phase builds on the previous one. Do not start Phase N+1 work until Phase N's P0 items have acceptance criteria met and are verified on a low-spec device emulator (3 GB usable RAM / 4 GB marketed, API 29).
 
 ---
 
@@ -37,25 +37,28 @@ Each phase builds on the previous one. Do not start Phase N+1 work until Phase N
 - **Result:** GO — Qwen2.5-1.5B-Instruct Q4_K_M via llama.cpp. 4 models benchmarked (12 prompts × 3 runs each). Only Qwen2.5-1.5B passes all criteria. SmolLM2-1.7B is backup (fastest but exceeds RAM by 8%). See [ADR 0006](../../ejs-docs/adr/0006-qwen25-1.5b-as-on-device-llm.md), [spike report](../../spikes/p0-001-llm-inference/reports/spike-report.md).
 - **Completed:** 2026-03-03 | Branch: `spike/p0-001-llm-inference`
 
-### P0-002: Local Embedding + Retrieval Spike
+### P0-002: Local Embedding + Retrieval Spike (+ Storage Budget)
 
-- **Description:** Run a tiny embedding model (~50 MB) on-device. Embed a sample set of 50 curriculum content chunks. Perform vector similarity search and measure retrieval quality and latency.
+- **Description:** Run a tiny embedding model (~50–100 MB) on-device. Embed a sample set of 50 curriculum content chunks. Perform vector similarity search and measure retrieval quality and latency. Also validates the full on-device storage footprint (scope absorbed from original P0-003) and defines a revised storage budget as a component split (APK + models + content packs).
 - **Acceptance Criteria:**
   - [ ] Embedding model loads and produces vectors in < 2 seconds for a single query.
   - [ ] Top-3 retrieval accuracy ≥ 80% on 20 hand-crafted test queries against the sample set.
   - [ ] Vector search completes in < 500 ms.
   - [ ] Document embedding model candidates, vector DB options, and retrieval quality results.
-- **Output:** Spike report + recommendation on embedding model and local vector store.
+  - [ ] Total on-device storage footprint documented with per-component breakdown.
+  - [ ] Revised storage budget defined (APK ≤ 50 MB, models downloaded separately, content packs ≤ 200 MB each).
+- **Output:** Spike report + recommendation on embedding model and local vector store + revised storage budget + ADR 0007.
 
-### P0-003: Storage Footprint Validation
+### P0-003: Battery & Thermal Validation
 
-- **Description:** Calculate and validate the total installed footprint: APK + base model + embedding model + one content pack. Must fit within the 150 MB budget (excluding content packs beyond the base).
+- **Description:** Structured testing of battery drain and device temperature during sustained on-device inference (LLM + embedding) on real low-end devices or representative emulators. Storage footprint validation has been absorbed into P0-002.
 - **Acceptance Criteria:**
-  - [ ] Total footprint documented with per-component breakdown.
-  - [ ] If over budget: identify which component to compress, quantize further, or split.
+  - [ ] Battery drain < 3% per 30-minute learning session on a 4,000 mAh device.
+  - [ ] No thermal throttling triggered during a 30-minute session.
+  - [ ] Results documented for at least 2 device profiles (low-end 4 GB, mid-range 6 GB).
   - [ ] Feasibility verdict: GO / NO-GO / CONDITIONAL with stated conditions.
-- **Output:** Size budget spreadsheet + go/no-go decision.
-- **⚠️ Note from P0-001:** Qwen2.5-1.5B model alone is 1,066 MB — far exceeds the 150 MB *installed* budget. The 150 MB target likely needs reinterpretation (APK excluding model, or model downloaded separately). RAM budget is also tight: 1,839 MB of 2,048 MB used by LLM alone, leaving ~209 MB for embedding model + vector DB + app.
+- **Output:** Battery & thermal test report + go/no-go decision.
+- **Note:** Storage footprint validation moved to P0-002. Device RAM floor raised from 3 GB to 4 GB (marketed) based on P0-001 results — see [ADR 0006](../../ejs-docs/adr/0006-qwen25-1.5b-as-on-device-llm.md).
 
 ### P0-004: Sample Content Pack Creation
 
@@ -315,7 +318,7 @@ A work item is **done** when all of the following are true:
 - [ ] No new lint warnings introduced.
 
 ### Performance
-- [ ] Tested on the low-spec emulator (2 GB RAM, API 29, 720p).
+- [ ] Tested on the low-spec emulator (3 GB usable RAM / 4 GB marketed, API 29, 720p).
 - [ ] No performance budget regressions (cold start, inference latency, memory, battery).
 - [ ] No new ANR (Application Not Responding) risk paths.
 
@@ -339,4 +342,4 @@ A work item is **done** when all of the following are true:
 
 ---
 
-*Last updated: 2026-03-03*
+*Last updated: 2026-03-04*

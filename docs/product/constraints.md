@@ -8,10 +8,10 @@
 
 | Constraint | Detail |
 |---|---|
-| **Target device class** | Low-end to mid-range Android smartphones (Samsung A04, Xiaomi Redmi 10C, Mobicel Hero, etc.) |
+| **Target device class** | Low-end to mid-range Android smartphones (Samsung A04s, Xiaomi Redmi 10C, Mobicel Hero 4 GB, etc.) |
 | **Minimum OS** | Android 10 (API 29) |
-| **RAM floor** | ~2 GB usable (devices marketed as "3 GB" typically have ~2 GB available after OS overhead) |
-| **Storage budget** | App + base content pack must fit in **≤ 150 MB** installed. Many target devices ship with 32 GB total; after OS, WhatsApp, and media the learner may have < 3 GB free |
+| **RAM floor** | ~3 GB usable (devices marketed as "4 GB" typically have ~3 GB available after OS overhead). Raised from 3 GB marketed after P0-001 showed LLM alone uses 1,839 MB — see [ADR 0006](../../ejs-docs/adr/0006-qwen25-1.5b-as-on-device-llm.md) |
+| **Storage budget** | **Component split** (not a single budget): APK ≤ 50 MB, AI models ≤ 1.2 GB (downloaded on first launch), content packs ≤ 200 MB each. Total first-launch download ~1.4 GB. Many target devices ship with 32 GB total; after OS, WhatsApp, and media the learner may have < 3 GB free |
 | **CPU** | Quad-core ARM Cortex-A53 class or equivalent — no guaranteed NNAPI / GPU delegate support |
 | **Screen** | 5"–6.5" LCD, 720p typical. Must be usable in direct sunlight and on cracked screens |
 | **Battery** | 3 000–5 000 mAh. Must not drain noticeably during a 30-minute learning session |
@@ -141,4 +141,4 @@ These intersections are where the hardest design trade-offs live and where archi
 
 ---
 
-*Last updated: 2026-03-03*
+*Last updated: 2026-03-04*

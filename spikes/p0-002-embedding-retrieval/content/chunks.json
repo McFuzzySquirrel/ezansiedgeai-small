@@ -1,0 +1,407 @@
+{
+  "description": "50 Grade 6 CAPS Mathematics content chunks for embedding + retrieval benchmarking. Each chunk simulates a curriculum content piece that would appear in a production content pack. Topics cover fractions (15), decimals (8), geometry (7), measurement (5), data handling (5), patterns & algebra (5), and ratio & rate (5).",
+  "version": "0.1.0",
+  "source": "CAPS Grade 6 Mathematics curriculum, authored for spike testing",
+  "chunks": [
+    {
+      "id": "fractions-basics-001",
+      "topic_path": "term1.fractions.basics",
+      "title": "What is a Fraction?",
+      "content": "A fraction represents a part of a whole. It is written as one number over another, separated by a line. The top number is called the numerator and tells us how many parts we have. The bottom number is called the denominator and tells us how many equal parts the whole is divided into. For example, 3/4 means we have 3 parts out of 4 equal parts. Think of a pizza cut into 4 equal slices — if you eat 3 slices, you have eaten 3/4 of the pizza. The fraction bar means 'out of' or 'divided by'. Every fraction has three parts: the numerator (top), the fraction bar (the line), and the denominator (bottom). The denominator can never be zero because you cannot divide something into zero equal parts.",
+      "difficulty": "basic",
+      "term": 1
+    },
+    {
+      "id": "fractions-basics-002",
+      "topic_path": "term1.fractions.basics",
+      "title": "Types of Fractions",
+      "content": "There are three main types of fractions. A proper fraction has a numerator smaller than its denominator (like 2/5 or 3/8) — it represents less than one whole. An improper fraction has a numerator equal to or larger than its denominator (like 7/4 or 5/3) — it represents one whole or more. A mixed number combines a whole number and a proper fraction (like 1 3/4 or 2 1/3). You can convert between improper fractions and mixed numbers. To convert 7/4 to a mixed number: divide 7 by 4 to get 1 remainder 3, so 7/4 = 1 3/4. To convert 2 1/3 to an improper fraction: multiply the whole number by the denominator and add the numerator: (2 × 3) + 1 = 7, so 2 1/3 = 7/3.",
+      "difficulty": "basic",
+      "term": 1
+    },
+    {
+      "id": "fractions-equivalent-001",
+      "topic_path": "term1.fractions.equivalent",
+      "title": "Equivalent Fractions",
+      "content": "Equivalent fractions are fractions that represent the same value even though they look different. To find an equivalent fraction, multiply or divide both the numerator and the denominator by the same number. For example, 1/2 = 2/4 = 3/6 = 4/8 = 5/10. We can check by simplifying: 4/8 ÷ 4/4 = 1/2. This is also called simplifying or reducing a fraction. To simplify a fraction, find the highest common factor (HCF) of the numerator and denominator and divide both by it. For example, to simplify 12/18: the HCF of 12 and 18 is 6, so 12/18 = (12÷6)/(18÷6) = 2/3. Two fractions are equivalent if their cross products are equal: a/b = c/d when a×d = b×c.",
+      "difficulty": "basic",
+      "term": 1
+    },
+    {
+      "id": "fractions-comparing-001",
+      "topic_path": "term1.fractions.comparing",
+      "title": "Comparing and Ordering Fractions",
+      "content": "To compare fractions, you need a common denominator. Find the lowest common multiple (LCM) of the denominators, convert both fractions to equivalent fractions with that denominator, then compare the numerators. Example: Compare 3/4 and 5/6. The LCM of 4 and 6 is 12. Convert: 3/4 = 9/12 and 5/6 = 10/12. Since 9 < 10, we know 3/4 < 5/6. Quick tips: When fractions have the same denominator, the one with the larger numerator is bigger. When fractions have the same numerator, the one with the smaller denominator is bigger (because each piece is larger). To order fractions from smallest to largest, convert them all to the same denominator first.",
+      "difficulty": "intermediate",
+      "term": 1
+    },
+    {
+      "id": "fractions-addition-001",
+      "topic_path": "term1.fractions.addition",
+      "title": "Adding Fractions with the Same Denominator",
+      "content": "When fractions have the same denominator (called like fractions), adding them is simple: add the numerators and keep the denominator the same. Example: 2/7 + 3/7 = (2+3)/7 = 5/7. Think of it like adding slices of the same pizza — 2 slices plus 3 slices equals 5 slices, and the pizza is still cut into 7 pieces. If the answer is an improper fraction, convert it to a mixed number. Example: 5/8 + 6/8 = 11/8 = 1 3/8. Always simplify your answer if possible. Example: 3/10 + 5/10 = 8/10 = 4/5.",
+      "difficulty": "basic",
+      "term": 1
+    },
+    {
+      "id": "fractions-addition-002",
+      "topic_path": "term1.fractions.addition",
+      "title": "Adding Fractions with Different Denominators",
+      "content": "To add fractions with different denominators (unlike fractions): Step 1: Find a common denominator — the lowest common multiple (LCM) of the two denominators. Step 2: Convert each fraction to an equivalent fraction with that common denominator. Step 3: Add the numerators. Step 4: Keep the common denominator. Step 5: Simplify if possible. Example: 1/3 + 1/4. LCM of 3 and 4 is 12. Convert: 1/3 = 4/12 and 1/4 = 3/12. Add: 4/12 + 3/12 = 7/12. Another example: 2/5 + 1/3. LCM of 5 and 3 is 15. Convert: 2/5 = 6/15 and 1/3 = 5/15. Add: 6/15 + 5/15 = 11/15.",
+      "difficulty": "intermediate",
+      "term": 1
+    },
+    {
+      "id": "fractions-subtraction-001",
+      "topic_path": "term1.fractions.subtraction",
+      "title": "Subtracting Fractions",
+      "content": "Subtracting fractions follows the same rules as adding fractions. With like fractions (same denominator): subtract the numerators and keep the denominator. Example: 5/8 - 3/8 = 2/8 = 1/4. With unlike fractions (different denominators): find a common denominator first, then subtract. Example: 3/4 - 1/3. LCM of 4 and 3 is 12. Convert: 3/4 = 9/12 and 1/3 = 4/12. Subtract: 9/12 - 4/12 = 5/12. When subtracting mixed numbers, you may need to borrow from the whole number. Example: 3 1/4 - 1 3/4. Borrow 1 from 3: 2 5/4 - 1 3/4 = 1 2/4 = 1 1/2.",
+      "difficulty": "intermediate",
+      "term": 1
+    },
+    {
+      "id": "fractions-multiplication-001",
+      "topic_path": "term1.fractions.multiplication",
+      "title": "Multiplying Fractions",
+      "content": "To multiply fractions, multiply the numerators together and multiply the denominators together. Example: 2/3 × 4/5 = (2×4)/(3×5) = 8/15. You do NOT need a common denominator for multiplication. Tip: You can simplify before multiplying by cancelling common factors. Example: 3/4 × 2/9 — the 3 and 9 share a factor of 3, so simplify to 1/4 × 2/3 = 2/12 = 1/6. To multiply a fraction by a whole number, write the whole number as a fraction over 1. Example: 3 × 2/5 = 3/1 × 2/5 = 6/5 = 1 1/5. For mixed numbers, convert to improper fractions first. Example: 1 1/2 × 2/3 = 3/2 × 2/3 = 6/6 = 1.",
+      "difficulty": "intermediate",
+      "term": 1
+    },
+    {
+      "id": "fractions-division-001",
+      "topic_path": "term1.fractions.division",
+      "title": "Dividing Fractions",
+      "content": "To divide fractions, multiply by the reciprocal (flip the second fraction). The reciprocal of a/b is b/a. Example: 2/3 ÷ 4/5 = 2/3 × 5/4 = 10/12 = 5/6. Remember the phrase 'Keep, Change, Flip': Keep the first fraction, Change division to multiplication, Flip the second fraction. To divide a fraction by a whole number: write the whole number as a fraction over 1, then flip it. Example: 3/4 ÷ 2 = 3/4 × 1/2 = 3/8. For mixed numbers, convert to improper fractions first. Example: 2 1/2 ÷ 1 1/4 = 5/2 ÷ 5/4 = 5/2 × 4/5 = 20/10 = 2.",
+      "difficulty": "intermediate",
+      "term": 1
+    },
+    {
+      "id": "fractions-word-problems-001",
+      "topic_path": "term1.fractions.word_problems",
+      "title": "Finding a Fraction of an Amount",
+      "content": "To find a fraction of an amount, multiply the amount by the fraction. 'Of' means multiply in maths. Steps: Step 1: Write the calculation using × for 'of'. Step 2: Divide the amount by the denominator. Step 3: Multiply by the numerator. Example: Find 2/5 of R60. Step 1: 2/5 × 60. Step 2: 60 ÷ 5 = 12 (one fifth). Step 3: 12 × 2 = 24 (two fifths). So 2/5 of R60 = R24. You can check: R24 is 2 parts, each part is R12, and 5 parts would be 5 × R12 = R60 ✓. Another example: Find 3/4 of 200 grams. 200 ÷ 4 = 50 (one quarter). 50 × 3 = 150 (three quarters). So 3/4 of 200 g = 150 g.",
+      "difficulty": "intermediate",
+      "term": 1
+    },
+    {
+      "id": "fractions-word-problems-002",
+      "topic_path": "term1.fractions.word_problems",
+      "title": "Fraction Word Problems — Sharing and Remaining",
+      "content": "Many fraction word problems involve sharing or finding what is left. Example: Sipho has 24 sweets. He gives 1/3 to his sister and 1/4 to his brother. How many does he have left? Step 1: Find 1/3 of 24 = 8 (given to sister). Step 2: Find 1/4 of 24 = 6 (given to brother). Step 3: Total given away = 8 + 6 = 14. Step 4: Remaining = 24 - 14 = 10 sweets. Alternatively, find the fraction remaining: 1 - 1/3 - 1/4 = 12/12 - 4/12 - 3/12 = 5/12. Then 5/12 of 24 = 10. Both methods give the same answer. Always read the question carefully to identify what fraction operation is needed.",
+      "difficulty": "intermediate",
+      "term": 1
+    },
+    {
+      "id": "fractions-decimals-001",
+      "topic_path": "term1.fractions.decimals_link",
+      "title": "Converting Between Fractions and Decimals",
+      "content": "Fractions and decimals are two ways of showing the same value. To convert a fraction to a decimal, divide the numerator by the denominator. Example: 3/4 = 3 ÷ 4 = 0.75. Example: 1/3 = 1 ÷ 3 = 0.333... (a recurring decimal). To convert a decimal to a fraction, look at the place value. Example: 0.6 = 6/10 = 3/5. Example: 0.25 = 25/100 = 1/4. Common conversions to memorise: 1/2 = 0.5, 1/4 = 0.25, 3/4 = 0.75, 1/5 = 0.2, 1/10 = 0.1, 1/3 ≈ 0.33, 2/3 ≈ 0.67. These conversions are useful for comparing fractions and decimals, and for checking your answers.",
+      "difficulty": "intermediate",
+      "term": 1
+    },
+    {
+      "id": "fractions-percentages-001",
+      "topic_path": "term1.fractions.percentages_link",
+      "title": "Fractions, Decimals, and Percentages",
+      "content": "Fractions, decimals, and percentages are three ways to express parts of a whole. Percent means 'per hundred' or 'out of 100'. To convert a fraction to a percentage: multiply by 100. Example: 3/5 × 100 = 60%. To convert a percentage to a fraction: write over 100 and simplify. Example: 75% = 75/100 = 3/4. To convert a decimal to a percentage: multiply by 100 (move the decimal point 2 places right). Example: 0.45 = 45%. To convert a percentage to a decimal: divide by 100 (move the decimal point 2 places left). Example: 30% = 0.30 = 0.3. Key equivalents: 50% = 1/2 = 0.5, 25% = 1/4 = 0.25, 10% = 1/10 = 0.1, 33.3% ≈ 1/3, 20% = 1/5 = 0.2.",
+      "difficulty": "intermediate",
+      "term": 1
+    },
+    {
+      "id": "fractions-simplifying-001",
+      "topic_path": "term1.fractions.simplifying",
+      "title": "Simplifying Fractions Using HCF",
+      "content": "Simplifying (or reducing) a fraction means writing it in its simplest form — where the numerator and denominator have no common factors other than 1. Method: Find the Highest Common Factor (HCF) of the numerator and denominator, then divide both by it. Example: Simplify 18/24. Factors of 18: 1, 2, 3, 6, 9, 18. Factors of 24: 1, 2, 3, 4, 6, 8, 12, 24. HCF = 6. So 18/24 = (18÷6)/(24÷6) = 3/4. Quick check: can you divide both by 2? by 3? by 5? Keep dividing until no common factor remains. A fraction is fully simplified when the only common factor of the numerator and denominator is 1. This is also called being 'in lowest terms'.",
+      "difficulty": "intermediate",
+      "term": 1
+    },
+    {
+      "id": "fractions-mixed-operations-001",
+      "topic_path": "term1.fractions.mixed_operations",
+      "title": "Mixed Operations with Fractions",
+      "content": "When a problem involves more than one operation with fractions, follow BODMAS/BEDMAS order: Brackets first, then Orders (powers), then Division and Multiplication (left to right), then Addition and Subtraction (left to right). Example: 1/2 + 1/3 × 3/4. First do the multiplication: 1/3 × 3/4 = 3/12 = 1/4. Then add: 1/2 + 1/4 = 2/4 + 1/4 = 3/4. Example with brackets: (1/2 + 1/3) × 3/4. First do the brackets: 1/2 + 1/3 = 3/6 + 2/6 = 5/6. Then multiply: 5/6 × 3/4 = 15/24 = 5/8. Notice how brackets change the answer! Always show your working step by step.",
+      "difficulty": "advanced",
+      "term": 1
+    },
+    {
+      "id": "decimals-place-value-001",
+      "topic_path": "term1.decimals.place_value",
+      "title": "Decimal Place Value",
+      "content": "In a decimal number, each digit has a place value based on its position. Moving left from the decimal point, the values increase by powers of 10: ones, tens, hundreds. Moving right from the decimal point, the values decrease: tenths (1/10), hundredths (1/100), thousandths (1/1000). For 45.67: the 4 is in the tens place (4 × 10 = 40), the 5 is in the ones place (5 × 1 = 5), the 6 is in the tenths place (6 × 0.1 = 0.6), and the 7 is in the hundredths place (7 × 0.01 = 0.07). So 45.67 = 40 + 5 + 0.6 + 0.07. Understanding place value helps with comparing, ordering, and rounding decimals.",
+      "difficulty": "basic",
+      "term": 1
+    },
+    {
+      "id": "decimals-comparing-001",
+      "topic_path": "term1.decimals.comparing",
+      "title": "Comparing and Ordering Decimals",
+      "content": "To compare decimals, look at the digits from left to right, starting with the largest place value. Step 1: Make sure both numbers have the same number of decimal places by adding trailing zeros (0.5 = 0.50). Step 2: Compare digit by digit from left to right. Example: Compare 0.45 and 0.5. Write 0.5 as 0.50. Compare: 0.45 vs 0.50. The tenths digit: 4 < 5, so 0.45 < 0.5. Common mistake: thinking 0.45 > 0.5 because 45 > 5. Remember, the place value matters! To order decimals, line them up by the decimal point and compare digit by digit. Example: Order 0.3, 0.25, 0.305 from smallest to largest. Write as 0.300, 0.250, 0.305. Answer: 0.25, 0.3, 0.305.",
+      "difficulty": "basic",
+      "term": 1
+    },
+    {
+      "id": "decimals-addition-001",
+      "topic_path": "term1.decimals.addition",
+      "title": "Adding and Subtracting Decimals",
+      "content": "To add or subtract decimals, line up the decimal points and then add or subtract as with whole numbers. Step 1: Write the numbers in a column with decimal points aligned. Step 2: Add trailing zeros so both numbers have the same number of decimal places. Step 3: Add or subtract from right to left, carrying or borrowing as needed. Step 4: Bring the decimal point straight down. Example: 12.5 + 3.75. Write as 12.50 + 3.75. Add: 12.50 + 3.75 = 16.25. Example: 8.3 - 2.47. Write as 8.30 - 2.47. Subtract: 8.30 - 2.47 = 5.83. Always estimate first to check your answer makes sense.",
+      "difficulty": "basic",
+      "term": 1
+    },
+    {
+      "id": "decimals-multiplication-001",
+      "topic_path": "term2.decimals.multiplication",
+      "title": "Multiplying Decimals by 10, 100, and 1000",
+      "content": "When you multiply a decimal number by 10, each digit moves one place to the left (the decimal point moves one place to the right). When you multiply by 100, each digit moves two places to the left. When you multiply by 1000, each digit moves three places to the left. This makes the number bigger. Examples: 3.45 × 10 = 34.5. 3.45 × 100 = 345. 3.45 × 1000 = 3450. 0.07 × 100 = 7. 0.007 × 1000 = 7. The reverse happens when dividing: dividing by 10 moves the decimal point one place to the left (making the number smaller). 345 ÷ 10 = 34.5. 345 ÷ 100 = 3.45.",
+      "difficulty": "basic",
+      "term": 2
+    },
+    {
+      "id": "decimals-multiplication-002",
+      "topic_path": "term2.decimals.multiplication",
+      "title": "Multiplying Decimals by Whole Numbers",
+      "content": "To multiply a decimal by a whole number: Step 1: Ignore the decimal point and multiply as whole numbers. Step 2: Count the total number of decimal places in the question. Step 3: Put the decimal point in the answer with the same number of decimal places. Example: 2.5 × 3. Step 1: 25 × 3 = 75. Step 2: 2.5 has 1 decimal place. Step 3: 7.5. So 2.5 × 3 = 7.5. Another example: 0.12 × 4. Step 1: 12 × 4 = 48. Step 2: 0.12 has 2 decimal places. Step 3: 0.48. Estimate to check: 0.12 is about 0.1, and 0.1 × 4 = 0.4. Our answer 0.48 is close ✓.",
+      "difficulty": "intermediate",
+      "term": 2
+    },
+    {
+      "id": "decimals-rounding-001",
+      "topic_path": "term1.decimals.rounding",
+      "title": "Rounding Decimals",
+      "content": "Rounding means replacing a number with an approximate value. To round to a given decimal place: Step 1: Find the digit in the place you are rounding to. Step 2: Look at the digit to the right of it. Step 3: If the digit to the right is 5 or more, round up. If it is less than 5, round down (keep the same). Step 4: Drop all digits after the rounded place. Example: Round 3.847 to 1 decimal place. The tenths digit is 8. The digit to the right is 4 (less than 5), so keep the 8. Answer: 3.8. Example: Round 3.847 to 2 decimal places. The hundredths digit is 4. The digit to the right is 7 (5 or more), so round up. Answer: 3.85.",
+      "difficulty": "basic",
+      "term": 1
+    },
+    {
+      "id": "decimals-division-001",
+      "topic_path": "term2.decimals.division",
+      "title": "Dividing Decimals",
+      "content": "To divide a decimal by a whole number, use long division and bring the decimal point straight up into the answer. Example: 7.5 ÷ 3. Set up long division: 3 into 7 goes 2 remainder 1. Bring down 5 to get 15. 3 into 15 goes 5. Answer: 2.5. To divide by a decimal, first make the divisor a whole number by multiplying both numbers by 10, 100, etc. Example: 6.4 ÷ 0.8. Multiply both by 10: 64 ÷ 8 = 8. Example: 0.72 ÷ 0.06. Multiply both by 100: 72 ÷ 6 = 12. This works because multiplying both numbers by the same value doesn't change the quotient.",
+      "difficulty": "intermediate",
+      "term": 2
+    },
+    {
+      "id": "decimals-money-001",
+      "topic_path": "term2.decimals.money",
+      "title": "Decimals and Money Calculations",
+      "content": "South African currency uses decimals: R1.00 = 100 cents. When working with money, always use two decimal places. Example: Lindiwe buys a notebook for R12.50 and a pen for R3.75. How much does she spend? R12.50 + R3.75 = R16.25. Example: Themba has R50.00 and buys 3 items at R8.95 each. Total cost: 3 × R8.95 = R26.85. Change: R50.00 - R26.85 = R23.15. When working with money, always round to 2 decimal places (cents). If a calculation gives R12.456, round to R12.46 (since the 6 rounds the 5 up). Always include the R symbol and two decimal places in your final answer.",
+      "difficulty": "basic",
+      "term": 2
+    },
+    {
+      "id": "geometry-angles-001",
+      "topic_path": "term2.geometry.angles",
+      "title": "Types of Angles",
+      "content": "An angle is formed where two lines meet at a point called the vertex. Angles are measured in degrees (°). Types of angles: A right angle is exactly 90°, like the corner of a book or a door frame. An acute angle is less than 90°, like a slightly open pair of scissors. An obtuse angle is more than 90° but less than 180°, like a wide-open book. A straight angle is exactly 180°, like a straight line. A reflex angle is more than 180° but less than 360°. A full rotation is 360°. To identify an angle type, compare it to a right angle (90°). You can use the corner of a piece of paper as a right-angle checker.",
+      "difficulty": "basic",
+      "term": 2
+    },
+    {
+      "id": "geometry-angles-002",
+      "topic_path": "term2.geometry.angles",
+      "title": "Measuring and Calculating Angles",
+      "content": "Angles are measured using a protractor. To measure an angle: Step 1: Place the centre of the protractor on the vertex of the angle. Step 2: Align one ray with the 0° line. Step 3: Read where the other ray crosses the scale. Important angle relationships: Angles on a straight line add up to 180°. Angles at a point add up to 360°. Vertically opposite angles are equal. Example: If one angle on a straight line is 65°, the other angle is 180° - 65° = 115°. Example: If three angles at a point are 90°, 120°, and x°, then 90 + 120 + x = 360, so x = 150°.",
+      "difficulty": "intermediate",
+      "term": 2
+    },
+    {
+      "id": "geometry-triangles-001",
+      "topic_path": "term2.geometry.triangles",
+      "title": "Properties of Triangles",
+      "content": "A triangle is a polygon with 3 sides and 3 angles. The angles of any triangle always add up to 180°. Types by sides: An equilateral triangle has all 3 sides equal and all 3 angles equal (60° each). An isosceles triangle has 2 sides equal and 2 angles equal. A scalene triangle has no equal sides and no equal angles. Types by angles: A right-angled triangle has one 90° angle. An acute triangle has all angles less than 90°. An obtuse triangle has one angle greater than 90°. Example: If a triangle has angles of 50° and 70°, the third angle = 180° - 50° - 70° = 60°.",
+      "difficulty": "basic",
+      "term": 2
+    },
+    {
+      "id": "geometry-quadrilaterals-001",
+      "topic_path": "term2.geometry.quadrilaterals",
+      "title": "Properties of Quadrilaterals",
+      "content": "A quadrilateral is a polygon with 4 sides. The angles of any quadrilateral add up to 360°. Types: A square has 4 equal sides and 4 right angles (90°). A rectangle has opposite sides equal and 4 right angles. A rhombus has 4 equal sides but angles are not necessarily 90°. A parallelogram has 2 pairs of parallel sides, opposite sides equal, and opposite angles equal. A trapezium has exactly 1 pair of parallel sides. A kite has 2 pairs of adjacent sides that are equal. The diagonals of a rectangle are equal; the diagonals of a rhombus cross at right angles.",
+      "difficulty": "intermediate",
+      "term": 2
+    },
+    {
+      "id": "geometry-2d-shapes-001",
+      "topic_path": "term2.geometry.2d_shapes",
+      "title": "Parallelogram Properties",
+      "content": "A parallelogram is a quadrilateral with two pairs of parallel sides. Properties: Opposite sides are equal in length (AB = CD and BC = AD). Opposite angles are equal (angle A = angle C and angle B = angle D). The diagonals bisect each other — they cut each other in half at the point where they cross. Adjacent angles are supplementary — they add up to 180°. The area of a parallelogram = base × perpendicular height. Note: the height must be perpendicular (at right angles) to the base, not the slant side. Special types of parallelograms include rectangles (all right angles), rhombuses (all sides equal), and squares (all sides equal AND all right angles).",
+      "difficulty": "intermediate",
+      "term": 2
+    },
+    {
+      "id": "geometry-symmetry-001",
+      "topic_path": "term2.geometry.symmetry",
+      "title": "Lines of Symmetry",
+      "content": "A line of symmetry divides a shape into two halves that are mirror images of each other. If you fold the shape along the line of symmetry, the two halves match exactly. Examples: A square has 4 lines of symmetry (2 through the midpoints of opposite sides, 2 through opposite corners). A rectangle has 2 lines of symmetry (through the midpoints of opposite sides). An equilateral triangle has 3 lines of symmetry. A circle has infinite lines of symmetry (any diameter). An isosceles triangle has 1 line of symmetry. A scalene triangle has no lines of symmetry. You can test for symmetry by folding paper or using a mirror.",
+      "difficulty": "basic",
+      "term": 2
+    },
+    {
+      "id": "geometry-3d-objects-001",
+      "topic_path": "term3.geometry.3d_objects",
+      "title": "3D Objects — Faces, Edges, and Vertices",
+      "content": "A 3D (three-dimensional) object has length, width, and height. Key terms: A face is a flat surface. An edge is where two faces meet. A vertex (plural: vertices) is a corner where edges meet. Common 3D objects: A cube has 6 faces, 12 edges, and 8 vertices. A rectangular prism (cuboid) has 6 faces, 12 edges, and 8 vertices. A triangular prism has 5 faces, 9 edges, and 6 vertices. A cylinder has 2 flat faces (circles) and 1 curved surface. A cone has 1 flat face (circle) and 1 curved surface with 1 vertex. A sphere has 0 flat faces, 0 edges, and 0 vertices — just 1 curved surface. Euler's formula: faces + vertices - edges = 2 (for polyhedra).",
+      "difficulty": "basic",
+      "term": 3
+    },
+    {
+      "id": "measurement-perimeter-001",
+      "topic_path": "term2.measurement.perimeter",
+      "title": "Perimeter of Shapes",
+      "content": "The perimeter is the total distance around the outside of a shape. To find the perimeter, add up all the side lengths. For a rectangle: Perimeter = 2 × (length + width) or P = 2l + 2w. Example: A rectangle 8 cm long and 5 cm wide has perimeter = 2 × (8 + 5) = 2 × 13 = 26 cm. For a square: Perimeter = 4 × side. Example: A square with 6 cm sides has perimeter = 4 × 6 = 24 cm. For irregular shapes, measure and add all sides. Always include the unit in your answer (cm, m, km). If one side is missing, you can often work it out from the other measurements.",
+      "difficulty": "basic",
+      "term": 2
+    },
+    {
+      "id": "measurement-area-001",
+      "topic_path": "term2.measurement.area",
+      "title": "Area of Rectangles and Squares",
+      "content": "Area is the amount of surface a shape covers, measured in square units (cm², m², km²). For a rectangle: Area = length × width. Example: A rectangle 8 cm × 5 cm has area = 8 × 5 = 40 cm². For a square: Area = side × side = side². Example: A square with 6 cm sides has area = 6 × 6 = 36 cm². Do not confuse area with perimeter! Perimeter is the distance around (measured in cm), while area is the space inside (measured in cm²). To estimate area on a grid, count the full squares and estimate partial squares. Example: A room is 4 m × 3 m. Area = 12 m². If tiles are 0.5 m × 0.5 m, each tile covers 0.25 m², so you need 12 ÷ 0.25 = 48 tiles.",
+      "difficulty": "basic",
+      "term": 2
+    },
+    {
+      "id": "measurement-area-002",
+      "topic_path": "term2.measurement.area",
+      "title": "Area of Triangles",
+      "content": "The area of a triangle = 1/2 × base × height (or A = bh/2). The height must be perpendicular (at right angles) to the base. Example: A triangle with base 10 cm and height 6 cm has area = 1/2 × 10 × 6 = 30 cm². Why does this formula work? A triangle is half of a rectangle. If you draw a rectangle around a triangle, the triangle takes up exactly half the space. The base and height of the triangle match the length and width of the rectangle. Important: The height is not always a side of the triangle — for obtuse triangles, the height may be outside the triangle. Always look for the perpendicular height.",
+      "difficulty": "intermediate",
+      "term": 2
+    },
+    {
+      "id": "measurement-volume-001",
+      "topic_path": "term3.measurement.volume",
+      "title": "Volume of Rectangular Prisms",
+      "content": "Volume measures the amount of space a 3D object takes up, measured in cubic units (cm³, m³). For a rectangular prism (cuboid): Volume = length × width × height. Example: A box 5 cm × 3 cm × 4 cm has volume = 5 × 3 × 4 = 60 cm³. For a cube: Volume = side × side × side = side³. Example: A cube with 3 cm sides has volume = 3 × 3 × 3 = 27 cm³. Capacity is the volume of liquid a container can hold, often measured in litres (ℓ) or millilitres (mℓ). 1 cm³ = 1 mℓ. 1000 cm³ = 1 ℓ. Example: A fish tank 30 cm × 20 cm × 25 cm has volume = 15 000 cm³ = 15 ℓ.",
+      "difficulty": "intermediate",
+      "term": 3
+    },
+    {
+      "id": "measurement-conversions-001",
+      "topic_path": "term2.measurement.conversions",
+      "title": "Unit Conversions — Length, Mass, and Capacity",
+      "content": "Converting between units means changing from one unit to another. Length: 1 km = 1000 m, 1 m = 100 cm, 1 cm = 10 mm. To convert larger to smaller units, multiply. To convert smaller to larger units, divide. Example: 2.5 km = 2.5 × 1000 = 2500 m. Example: 350 cm = 350 ÷ 100 = 3.5 m. Mass: 1 kg = 1000 g, 1 tonne = 1000 kg. Example: 4.2 kg = 4200 g. Capacity: 1 ℓ = 1000 mℓ, 1 kℓ = 1000 ℓ. Example: 750 mℓ = 0.75 ℓ. Tip: To decide whether to multiply or divide, ask: 'Am I going to a smaller unit (multiply) or a larger unit (divide)?'",
+      "difficulty": "basic",
+      "term": 2
+    },
+    {
+      "id": "data-handling-mean-001",
+      "topic_path": "term3.data_handling.mean",
+      "title": "Calculating the Mean (Average)",
+      "content": "The mean (average) is found by adding all the values together and dividing by how many values there are. Mean = sum of all values ÷ number of values. Example: Find the mean of 12, 15, 18, 9, 16. Step 1: Add all values: 12 + 15 + 18 + 9 + 16 = 70. Step 2: Count the values: 5 numbers. Step 3: Divide: 70 ÷ 5 = 14. The mean is 14. The mean gives us a single number that represents the 'typical' value in a dataset. It is affected by outliers (very high or very low values). Example: If we add 100 to the dataset: 12, 15, 18, 9, 16, 100. Mean = 170 ÷ 6 = 28.3 — much higher because of the outlier.",
+      "difficulty": "basic",
+      "term": 3
+    },
+    {
+      "id": "data-handling-median-mode-001",
+      "topic_path": "term3.data_handling.median_mode",
+      "title": "Median and Mode",
+      "content": "The median is the middle value when data is arranged in order. To find it: Step 1: Arrange values from smallest to largest. Step 2: Find the middle value. If there is an even number of values, the median is the mean of the two middle values. Example: 3, 7, 9, 12, 15. Median = 9 (the 3rd value). Example: 4, 6, 8, 10. Median = (6 + 8) ÷ 2 = 7. The mode is the value that appears most often. A dataset can have no mode, one mode, or more than one mode. Example: 2, 3, 3, 5, 7, 3, 8. Mode = 3 (appears 3 times). Example: 1, 2, 3, 4, 5. No mode (all appear once). The median is not affected by outliers, which makes it useful when data has extreme values.",
+      "difficulty": "basic",
+      "term": 3
+    },
+    {
+      "id": "data-handling-bar-graphs-001",
+      "topic_path": "term3.data_handling.graphs",
+      "title": "Reading and Drawing Bar Graphs",
+      "content": "A bar graph uses bars to show data. Each bar represents a category, and the height (or length) of the bar shows the value. To read a bar graph: look at the axis labels to understand what is being measured, then read the height of each bar against the scale. To draw a bar graph: Step 1: Draw two axes and label them. Step 2: Choose an appropriate scale for the y-axis. Step 3: Draw bars of equal width with equal gaps between them. Step 4: Give the graph a title. Example: Favourite sports in a class — Soccer: 12, Cricket: 8, Netball: 10, Swimming: 5. The y-axis goes from 0 to 12 (or higher). Each sport gets one bar. Important: bars must not touch each other (unlike histograms).",
+      "difficulty": "basic",
+      "term": 3
+    },
+    {
+      "id": "data-handling-pie-charts-001",
+      "topic_path": "term3.data_handling.pie_charts",
+      "title": "Reading Pie Charts",
+      "content": "A pie chart is a circle divided into sectors (slices) to show how data is shared. The whole circle represents 100% or the total. Each sector's size shows what fraction or percentage that category represents. To read a pie chart: look at the labels and sizes of each sector. A sector that is 1/4 of the circle represents 25%. A sector that is 1/2 represents 50%. Example: A pie chart shows how Amahle spends her R100 pocket money: Food 40%, Transport 25%, Savings 20%, Other 15%. Food = R40, Transport = R25, Savings = R20, Other = R15. To calculate: percentage × total = amount. 40% × R100 = R40. Pie charts are good for showing proportions but not exact values.",
+      "difficulty": "intermediate",
+      "term": 3
+    },
+    {
+      "id": "data-handling-probability-001",
+      "topic_path": "term4.data_handling.probability",
+      "title": "Introduction to Probability",
+      "content": "Probability tells us how likely something is to happen. It is measured from 0 (impossible) to 1 (certain). A probability of 1/2 or 0.5 means it is equally likely to happen or not. Probability = number of favourable outcomes ÷ total number of possible outcomes. Example: Rolling a standard die — what is the probability of getting a 3? There is 1 favourable outcome (getting 3) and 6 possible outcomes (1, 2, 3, 4, 5, 6). P(3) = 1/6. Example: In a bag with 4 red and 6 blue marbles, P(red) = 4/10 = 2/5. Words: Impossible = 0, Unlikely = close to 0, Even chance = 1/2, Likely = close to 1, Certain = 1.",
+      "difficulty": "basic",
+      "term": 4
+    },
+    {
+      "id": "patterns-number-sequences-001",
+      "topic_path": "term1.patterns.number_sequences",
+      "title": "Number Patterns and Sequences",
+      "content": "A number pattern (or sequence) follows a rule. To find the rule, look at how each number relates to the next. Arithmetic sequences: The difference between consecutive terms is constant. Example: 2, 5, 8, 11, 14 — the rule is +3. The next term is 14 + 3 = 17. Geometric sequences: Each term is multiplied by a constant. Example: 2, 6, 18, 54 — the rule is ×3. The next term is 54 × 3 = 162. To describe a pattern, state the starting number and the rule. Example: 'Start at 2, add 3 each time.' Always check your rule works for all given terms. Looking at the differences between terms is a good strategy for finding the rule.",
+      "difficulty": "basic",
+      "term": 1
+    },
+    {
+      "id": "patterns-input-output-001",
+      "topic_path": "term1.patterns.input_output",
+      "title": "Input-Output Tables and Flow Diagrams",
+      "content": "An input-output table shows how a rule transforms numbers. The input goes in, the rule is applied, and the output comes out. Example: Rule is × 2 + 1. Input 3 → Output 7 (3×2+1). Input 5 → Output 11 (5×2+1). To find the rule, look at how each input relates to its output. Try common operations: +, -, ×, ÷. A flow diagram shows the same thing as a picture: input → [operation] → [operation] → output. Example: input → [× 3] → [- 2] → output. Input 4 → 4×3=12 → 12-2=10 → output 10. To find a missing input, work backwards: reverse each operation. If output is 10: 10+2=12, 12÷3=4, so input is 4.",
+      "difficulty": "basic",
+      "term": 1
+    },
+    {
+      "id": "patterns-algebraic-001",
+      "topic_path": "term2.patterns.algebraic",
+      "title": "Introduction to Variables and Expressions",
+      "content": "A variable is a letter that represents an unknown number. Common variables: x, n, y. An algebraic expression uses variables, numbers, and operations. Example: 3n + 2 means 'multiply n by 3, then add 2.' If n = 4, then 3n + 2 = 3(4) + 2 = 14. Terms: In 3n + 2, the terms are 3n and 2. The coefficient of n is 3 (the number in front of the variable). A constant is a term without a variable (the 2). Like terms have the same variable: 3n and 5n are like terms; 3n and 3m are not. You can simplify by combining like terms: 3n + 5n = 8n. But 3n + 2 cannot be simplified further because 3n and 2 are unlike terms.",
+      "difficulty": "intermediate",
+      "term": 2
+    },
+    {
+      "id": "patterns-equations-001",
+      "topic_path": "term2.patterns.equations",
+      "title": "Solving Simple Equations",
+      "content": "An equation states that two expressions are equal. Example: x + 5 = 12. To solve, find the value of x that makes the equation true. Use inverse (opposite) operations. Addition ↔ Subtraction. Multiplication ↔ Division. Example: x + 5 = 12. Subtract 5 from both sides: x = 12 - 5 = 7. Check: 7 + 5 = 12 ✓. Example: 3x = 18. Divide both sides by 3: x = 18 ÷ 3 = 6. Check: 3 × 6 = 18 ✓. Example: 2x + 3 = 11. Step 1: Subtract 3: 2x = 8. Step 2: Divide by 2: x = 4. Check: 2(4) + 3 = 11 ✓. Always check your answer by substituting it back into the original equation.",
+      "difficulty": "intermediate",
+      "term": 2
+    },
+    {
+      "id": "patterns-number-sentences-001",
+      "topic_path": "term1.patterns.number_sentences",
+      "title": "Writing Number Sentences from Word Problems",
+      "content": "A number sentence is a mathematical statement using numbers and symbols. To solve word problems, translate the words into a number sentence. Key words: 'Sum' or 'total' → addition (+). 'Difference' → subtraction (−). 'Product' → multiplication (×). 'Quotient' → division (÷). 'Is' or 'equals' → equals (=). Example: 'The sum of a number and 7 is 15' → n + 7 = 15 → n = 8. Example: 'Three times a number decreased by 4 is 20' → 3n − 4 = 20 → 3n = 24 → n = 8. Steps: Step 1: Read the problem carefully. Step 2: Identify the unknown (what you need to find). Step 3: Write the number sentence. Step 4: Solve and check.",
+      "difficulty": "intermediate",
+      "term": 1
+    },
+    {
+      "id": "ratio-basics-001",
+      "topic_path": "term3.ratio.basics",
+      "title": "Understanding Ratios",
+      "content": "A ratio compares two or more quantities of the same kind. It can be written as a:b, a to b, or a/b. Example: In a class with 12 boys and 18 girls, the ratio of boys to girls is 12:18. To simplify a ratio, divide all parts by their highest common factor (HCF). HCF of 12 and 18 is 6. So 12:18 = 2:3. This means for every 2 boys there are 3 girls. Order matters: boys:girls = 2:3 is different from girls:boys = 3:2. Ratios can also be expressed as fractions: 2/5 of the class are boys, 3/5 are girls (2+3=5 total parts). Equivalent ratios: 2:3 = 4:6 = 6:9 = 10:15. Multiply or divide all parts by the same number.",
+      "difficulty": "basic",
+      "term": 3
+    },
+    {
+      "id": "ratio-sharing-001",
+      "topic_path": "term3.ratio.sharing",
+      "title": "Sharing in a Given Ratio",
+      "content": "To share an amount in a given ratio: Step 1: Add the parts of the ratio to find the total number of parts. Step 2: Divide the total amount by the total parts to find the value of one part. Step 3: Multiply by each ratio number. Example: Share R150 in the ratio 2:3. Total parts = 2 + 3 = 5. One part = R150 ÷ 5 = R30. First share = 2 × R30 = R60. Second share = 3 × R30 = R90. Check: R60 + R90 = R150 ✓. Example: Share 45 sweets in the ratio 4:5. Total parts = 9. One part = 45 ÷ 9 = 5. First share = 4 × 5 = 20. Second share = 5 × 5 = 25. Check: 20 + 25 = 45 ✓.",
+      "difficulty": "intermediate",
+      "term": 3
+    },
+    {
+      "id": "ratio-rate-001",
+      "topic_path": "term3.ratio.rate",
+      "title": "Understanding Rate",
+      "content": "A rate compares two quantities of different kinds. It tells us how one quantity changes relative to another. Common rates: Speed (km per hour or km/h), Price (Rand per kilogram or R/kg), Density (people per km²). Example: If a car travels 240 km in 3 hours, its speed = 240 ÷ 3 = 80 km/h. Example: If 5 kg of potatoes cost R35, the rate = R35 ÷ 5 = R7 per kg. Rates help us compare: Which is cheaper — R24 for 3 ℓ or R35 for 5 ℓ? R24 ÷ 3 = R8/ℓ. R35 ÷ 5 = R7/ℓ. The second option is cheaper at R7/ℓ. Rate = total amount ÷ number of units. Always include both units in your answer (e.g., km/h, R/kg).",
+      "difficulty": "intermediate",
+      "term": 3
+    },
+    {
+      "id": "ratio-proportion-001",
+      "topic_path": "term3.ratio.proportion",
+      "title": "Direct Proportion",
+      "content": "Two quantities are in direct proportion when they increase or decrease together at the same rate. If you double one, the other doubles too. Example: If 1 loaf of bread costs R15, then 2 loaves cost R30, 3 loaves cost R45. The cost is directly proportional to the number of loaves. Method — Unitary method: Find the value of 1 unit, then multiply. Example: 4 pencils cost R12. How much do 7 pencils cost? Step 1: Cost of 1 pencil = R12 ÷ 4 = R3. Step 2: Cost of 7 pencils = 7 × R3 = R21. You can also use a ratio table: 4 pencils → R12, 7 pencils → R? Cross multiply: 4 × R? = 7 × R12, so R? = R84 ÷ 4 = R21.",
+      "difficulty": "intermediate",
+      "term": 3
+    },
+    {
+      "id": "ratio-scale-001",
+      "topic_path": "term3.ratio.scale",
+      "title": "Scale and Scale Drawings",
+      "content": "A scale tells us how a drawing or map relates to real life. Example: A scale of 1:100 means 1 cm on the drawing represents 100 cm (1 m) in real life. To find real size from a drawing: multiply the drawing measurement by the scale factor. Example: A room is 5 cm wide on a plan with scale 1:200. Real width = 5 × 200 = 1000 cm = 10 m. To find drawing size from real size: divide the real measurement by the scale factor. Example: A building is 15 m tall. On a 1:500 plan, its height = 15 m = 1500 cm. Drawing height = 1500 ÷ 500 = 3 cm. Maps use scales like 1:50 000, meaning 1 cm on the map = 50 000 cm = 500 m = 0.5 km.",
+      "difficulty": "intermediate",
+      "term": 3
+    }
+  ]
+}

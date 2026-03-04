@@ -1,0 +1,91 @@
+# P0-002: Embedding + Retrieval Spike Configuration
+# --------------------------------------------------
+# Candidate embedding models, vector store options, and benchmark parameters
+# for local embedding + retrieval feasibility.
+# Also covers storage footprint validation (absorbed from P0-003).
+
+# Target device constraints (updated: 4 GB marketed / ~3 GB usable)
+target_device:
+  name: "Samsung Galaxy A04s / Redmi 10C (4 GB baseline)"
+  ram_total_mb: 4096        # 4 GB total device RAM (marketed)
+  ram_usable_mb: 3072       # ~3 GB available after OS overhead
+  ram_llm_mb: 1839          # Qwen2.5-1.5B peak RAM (from P0-001)
+  ram_budget_mb: 1161       # Remaining for embedding model + vector DB + app
+  cpu: "ARMv8-A (Cortex-A53 class)"
+  android_api: 29
+  storage_free_mb: 3000     # Estimated free storage on a 32 GB device
+
+# Storage budget (redefined from the original 150 MB single budget)
+storage_budget:
+  apk_mb: 50               # APK without models
+  llm_model_mb: 1066       # Qwen2.5-1.5B Q4_K_M (from P0-001)
+  embedding_model_mb: 100   # Target: ≤ 100 MB
+  content_pack_mb: 200      # Per content pack (including embeddings + index)
+  total_target_mb: 1416     # Sum of above (downloaded on first launch)
+  notes: "Models downloaded on first launch, not bundled in APK"
+
+# Benchmark parameters
+benchmark:
+  embedding_batch_size: 8   # Embed this many chunks at a time
+  top_k: 3                  # Retrieve top-k chunks per query
+  warmup_runs: 1            # Discard first run for cache warmup
+  benchmark_runs: 3         # Average over this many runs per query
+  similarity_metric: "cosine"
+
+# Acceptance criteria (from docs/development/backlog-v1.md + storage additions)
+acceptance_criteria:
+  embedding_load_time_s: 2.0      # Model loads and produces vectors in < 2s
+  query_embedding_time_ms: 500    # Single query embedding in < 500 ms (relaxed from 50ms arch target)
+  vector_search_time_ms: 500      # Vector search completes in < 500 ms
+  retrieval_accuracy_top3: 0.80   # Top-3 retrieval accuracy ≥ 80%
+  peak_ram_mb: 1161               # Must fit in remaining RAM after LLM
+  model_size_mb: 100              # Embedding model ≤ 100 MB on disk
+
+# Candidate embedding models — sentence-transformers from HuggingFace
+models:
+  - id: "all-minilm-l6-v2"
+    name: "all-MiniLM-L6-v2"
+    repo: "sentence-transformers/all-MiniLM-L6-v2"
+    size_estimate_mb: 80
+    dimensions: 384
+    max_seq_length: 256
+    notes: "Industry standard tiny model. Good quality-to-size ratio."
+
+  - id: "bge-small-en-v1.5"
+    name: "BAAI/bge-small-en-v1.5"
+    repo: "BAAI/bge-small-en-v1.5"
+    size_estimate_mb: 130
+    dimensions: 384
+    max_seq_length: 512
+    notes: "Strong retrieval performance. Slightly larger."
+
+  - id: "gte-small"
+    name: "thenlper/gte-small"
+    repo: "thenlper/gte-small"
+    size_estimate_mb: 70
+    dimensions: 384
+    max_seq_length: 512
+    notes: "Alibaba DAMO Academy. Compact and efficient."
+
+# Vector store candidates to benchmark
+vector_stores:
+  - id: "faiss-flat"
+    name: "FAISS Flat (brute-force)"
+    notes: "Exact search. No index build time. Baseline."
+
+  - id: "faiss-ivf"
+    name: "FAISS IVF-Flat"
+    nprobe: 4
+    nlist: 8
+    notes: "Approximate search. Faster for larger datasets."
+
+  - id: "hnswlib"
+    name: "HNSWlib"
+    ef_construction: 200
+    M: 16
+    ef_search: 50
+    notes: "Graph-based ANN. Good recall at speed."
+
+  - id: "numpy-cosine"
+    name: "NumPy cosine similarity (baseline)"
+    notes: "Pure numpy dot product. No external vector DB. Reference baseline."
