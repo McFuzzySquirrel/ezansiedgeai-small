@@ -107,6 +107,123 @@ TEMPLATE_ADR = textwrap.dedent("""\
     Placeholder template.
 """)
 
+SAMPLE_ADR_EXTERNAL = textwrap.dedent("""\
+    ---
+    ejs:
+      type: journey-adr
+      version: 1.1
+      adr_id: 0099
+      title: External ADR in Non-Standard Location
+      date: 2026-03-03
+      status: proposed
+      session_id: ejs-session-2026-03-03-01
+      session_journey: ejs-docs/journey/2026/ejs-session-2026-03-03-01.md
+
+    actors:
+      humans:
+        - id: bob
+          role: developer
+      agents:
+        - id: copilot
+          role: coding-agent
+
+    context:
+      repo: external-repo
+      branch: feature
+    ---
+
+    # Context
+
+    This ADR lives outside the canonical ejs-docs/adr directory.
+
+    # Decision
+
+    Place ADR alongside feature code for co-location.
+
+    # Rationale
+
+    Co-location keeps decisions close to the code they affect.
+
+    # Consequences
+
+    ### Positive
+    - Better discoverability for feature developers
+
+    ### Negative / Trade-offs
+    - Harder to find without recursive scanning
+
+    # Key Learnings
+
+    ADRs can live anywhere in the repo.
+
+    # Agent Guidance
+
+    Always scan the full repo tree for ADR files.
+""")
+
+# Plain / Nygard-style ADR — no YAML frontmatter
+SAMPLE_PLAIN_ADR = textwrap.dedent("""\
+    # ADR-001: Use Markdown for Documentation
+
+    ## Status
+
+    Accepted
+
+    ## Context
+
+    We need a lightweight format for project documentation that is easy to
+    read in plain text and renders well on GitHub.
+
+    ## Decision
+
+    We will use Markdown for all project documentation.
+
+    ## Consequences
+
+    Markdown is widely supported and familiar to most developers.
+    Some complex layouts may require HTML fallbacks.
+""")
+
+SAMPLE_PLAIN_ADR_NUMBERED = textwrap.dedent("""\
+    # 2. Use PostgreSQL as Primary Database
+
+    ## Status
+
+    Proposed
+
+    ## Context
+
+    The application needs a reliable relational database.
+
+    ## Decision
+
+    We will use PostgreSQL as the primary database.
+
+    ## Consequences
+
+    Strong ACID compliance and excellent ecosystem support.
+""")
+
+SAMPLE_PLAIN_ADR_TEMPLATE = textwrap.dedent("""\
+    # ADR-000: ADR Template
+
+    ## Status
+
+    [Proposed | Accepted | Deprecated]
+
+    ## Context
+
+    Describe the context here.
+
+    ## Decision
+
+    Describe the decision here.
+
+    ## Consequences
+
+    Describe the consequences here.
+""")
+
 
 def _write_adr(tmp: Path, filename: str, content: str) -> Path:
     fp = tmp / filename
@@ -203,6 +320,88 @@ class TestParseAdrFile(_TempDirMixin, unittest.TestCase):
             adr_db._repo_root = original
 
 
+class TestParsePlainAdr(_TempDirMixin, unittest.TestCase):
+    """Tests for parsing plain / Nygard-style ADRs without YAML frontmatter."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        self._orig_root = adr_db._repo_root
+        adr_db._repo_root = lambda: self.tmp  # type: ignore[assignment]
+
+    def tearDown(self) -> None:
+        adr_db._repo_root = self._orig_root
+        super().tearDown()
+
+    def test_plain_adr_parsed(self) -> None:
+        """A plain Nygard-style ADR is parsed successfully."""
+        fp = _write_adr(self.adr_dir, "ADR-001-use-markdown.md", SAMPLE_PLAIN_ADR)
+        record = adr_db.parse_adr_file(fp)
+        self.assertIsNotNone(record)
+        self.assertEqual(record["adr_id"], "ADR-001")
+        self.assertEqual(record["title"], "Use Markdown for Documentation")
+        self.assertEqual(record["status"], "accepted")
+        self.assertIn("lightweight format", record["context_section"])
+        self.assertIn("Markdown for all project", record["decision"])
+        self.assertIn("widely supported", record["consequences"])
+
+    def test_plain_adr_numbered_heading(self) -> None:
+        """A plain ADR with '# 2. Title' heading is parsed."""
+        fp = _write_adr(self.adr_dir, "0002-use-postgres.md", SAMPLE_PLAIN_ADR_NUMBERED)
+        record = adr_db.parse_adr_file(fp)
+        self.assertIsNotNone(record)
+        self.assertEqual(record["adr_id"], "ADR-002")
+        self.assertEqual(record["title"], "Use PostgreSQL as Primary Database")
+        self.assertEqual(record["status"], "proposed")
+        self.assertIn("PostgreSQL", record["decision"])
+
+    def test_plain_template_skipped(self) -> None:
+        """A plain ADR-000 template is skipped."""
+        fp = _write_adr(self.adr_dir, "ADR-000-template.md", SAMPLE_PLAIN_ADR_TEMPLATE)
+        record = adr_db.parse_adr_file(fp)
+        self.assertIsNone(record)
+
+    def test_plain_adr_no_heading_skipped(self) -> None:
+        """A file with no heading is skipped."""
+        fp = _write_adr(self.adr_dir, "notes.md", "Some notes without headings.\n")
+        record = adr_db.parse_adr_file(fp)
+        self.assertIsNone(record)
+
+    def test_plain_adr_no_decision_or_context_skipped(self) -> None:
+        """A markdown file with a heading but no Decision/Context sections is skipped."""
+        content = "# Some Title\n\n## Introduction\n\nJust some text.\n"
+        fp = _write_adr(self.adr_dir, "readme.md", content)
+        record = adr_db.parse_adr_file(fp)
+        self.assertIsNone(record)
+
+    def test_plain_adr_sync_into_db(self) -> None:
+        """Plain ADRs found during sync are inserted into the database.
+
+        Uses an EJS-format ADR (SAMPLE_ADR) alongside a plain ADR to verify
+        both formats coexist in the same database after sync.
+        """
+        _write_adr(self.adr_dir, "0042-test.md", SAMPLE_ADR)
+        other_dir = self.tmp / "docs" / "adr"
+        other_dir.mkdir(parents=True)
+        _write_adr(other_dir, "ADR-001-use-markdown.md", SAMPLE_PLAIN_ADR)
+
+        rc = adr_db.cmd_sync(self.conn, self.adr_dir)
+        self.assertEqual(rc, 0)
+        rows = self.conn.execute("SELECT adr_id FROM adrs ORDER BY adr_id").fetchall()
+        ids = [r["adr_id"] for r in rows]
+        self.assertEqual(len(ids), 2)
+        self.assertIn("0042", ids)
+        self.assertIn("ADR-001", ids)
+
+    def test_plain_adr_ejs_still_preferred(self) -> None:
+        """EJS-format ADRs are still parsed with the EJS parser (not the fallback)."""
+        fp = _write_adr(self.adr_dir, "0042-test.md", SAMPLE_ADR)
+        record = adr_db.parse_adr_file(fp)
+        self.assertIsNotNone(record)
+        # EJS parser fills session_id; plain parser leaves it empty
+        self.assertEqual(record["session_id"], "ejs-session-2026-03-02-01")
+        self.assertEqual(record["context_repo"], "my-repo")
+
+
 class TestDatabaseSchema(_TempDirMixin, unittest.TestCase):
     def test_tables_created(self) -> None:
         tables = {
@@ -271,6 +470,122 @@ class TestSync(_TempDirMixin, unittest.TestCase):
     def test_sync_missing_dir(self) -> None:
         rc = adr_db.cmd_sync(self.conn, self.tmp / "nonexistent")
         self.assertEqual(rc, 1)
+
+
+class TestAdrDiscovery(_TempDirMixin, unittest.TestCase):
+    """Tests for discovering ADR files outside the canonical adr directory."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        self._orig_root = adr_db._repo_root
+        adr_db._repo_root = lambda: self.tmp  # type: ignore[assignment]
+
+    def tearDown(self) -> None:
+        adr_db._repo_root = self._orig_root
+        super().tearDown()
+
+    def test_discovers_adr_outside_adr_dir(self) -> None:
+        """ADR placed in a non-standard directory is discovered and synced."""
+        # Place one ADR in the canonical dir
+        _write_adr(self.adr_dir, "0042-test.md", SAMPLE_ADR)
+        # Place another ADR in a completely different directory
+        other_dir = self.tmp / "docs" / "decisions"
+        other_dir.mkdir(parents=True)
+        _write_adr(other_dir, "0099-external.md", SAMPLE_ADR_EXTERNAL)
+
+        rc = adr_db.cmd_sync(self.conn, self.adr_dir)
+        self.assertEqual(rc, 0)
+        rows = self.conn.execute("SELECT adr_id FROM adrs ORDER BY adr_id").fetchall()
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[0]["adr_id"], "0042")
+        self.assertEqual(rows[1]["adr_id"], "0099")
+
+    def test_discovers_adr_in_nested_subdirectory(self) -> None:
+        """ADR deeply nested under the repo root is still found."""
+        nested = self.tmp / "src" / "feature" / "adr"
+        nested.mkdir(parents=True)
+        _write_adr(nested, "0099-nested.md", SAMPLE_ADR_EXTERNAL)
+
+        rc = adr_db.cmd_sync(self.conn, self.adr_dir)
+        self.assertEqual(rc, 0)
+        rows = self.conn.execute("SELECT adr_id FROM adrs").fetchall()
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["adr_id"], "0099")
+
+    def test_skips_git_directory(self) -> None:
+        """Files inside .git should not be scanned."""
+        git_dir = self.tmp / ".git" / "refs"
+        git_dir.mkdir(parents=True)
+        _write_adr(git_dir, "0099-gitfile.md", SAMPLE_ADR_EXTERNAL)
+
+        rc = adr_db.cmd_sync(self.conn, self.adr_dir)
+        self.assertEqual(rc, 0)
+        rows = self.conn.execute("SELECT adr_id FROM adrs").fetchall()
+        self.assertEqual(len(rows), 0)
+
+    def test_skips_node_modules(self) -> None:
+        """Files inside node_modules should not be scanned."""
+        nm_dir = self.tmp / "node_modules" / "some-pkg"
+        nm_dir.mkdir(parents=True)
+        _write_adr(nm_dir, "0099-dep.md", SAMPLE_ADR_EXTERNAL)
+
+        rc = adr_db.cmd_sync(self.conn, self.adr_dir)
+        self.assertEqual(rc, 0)
+        rows = self.conn.execute("SELECT adr_id FROM adrs").fetchall()
+        self.assertEqual(len(rows), 0)
+
+    def test_no_duplicates_when_adr_in_canonical_dir(self) -> None:
+        """An ADR in the canonical dir should not be synced twice."""
+        _write_adr(self.adr_dir, "0042-test.md", SAMPLE_ADR)
+
+        rc = adr_db.cmd_sync(self.conn, self.adr_dir)
+        self.assertEqual(rc, 0)
+        rows = self.conn.execute("SELECT adr_id FROM adrs").fetchall()
+        self.assertEqual(len(rows), 1)
+
+    def test_stale_removal_covers_external_adrs(self) -> None:
+        """Stale external ADRs are removed when files are deleted."""
+        other_dir = self.tmp / "docs"
+        other_dir.mkdir(parents=True)
+        _write_adr(other_dir, "0099-external.md", SAMPLE_ADR_EXTERNAL)
+
+        adr_db.cmd_sync(self.conn, self.adr_dir)
+        self.assertEqual(self.conn.execute("SELECT count(*) FROM adrs").fetchone()[0], 1)
+
+        # Remove the external file and re-sync
+        (other_dir / "0099-external.md").unlink()
+        adr_db.cmd_sync(self.conn, self.adr_dir)
+        self.assertEqual(self.conn.execute("SELECT count(*) FROM adrs").fetchone()[0], 0)
+
+    def test_sync_output_reports_external_count(self) -> None:
+        """Sync output message mentions how many ADRs were found externally."""
+        import io
+        from contextlib import redirect_stdout
+
+        other_dir = self.tmp / "docs"
+        other_dir.mkdir(parents=True)
+        _write_adr(self.adr_dir, "0042-test.md", SAMPLE_ADR)
+        _write_adr(other_dir, "0099-external.md", SAMPLE_ADR_EXTERNAL)
+
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            adr_db.cmd_sync(self.conn, self.adr_dir)
+        output = buf.getvalue()
+        self.assertIn("Synced 2 ADR(s)", output)
+        self.assertIn("1 found outside", output)
+
+    def test_discover_adr_files_helper(self) -> None:
+        """_discover_adr_files returns files from both canonical and external locations."""
+        _write_adr(self.adr_dir, "0042-test.md", SAMPLE_ADR)
+        other_dir = self.tmp / "other"
+        other_dir.mkdir()
+        _write_adr(other_dir, "0099-other.md", SAMPLE_ADR_EXTERNAL)
+
+        files = adr_db._discover_adr_files(self.tmp, self.adr_dir)
+        # Should contain both files (though non-ADR .md files may also appear)
+        paths_str = [str(f) for f in files]
+        self.assertTrue(any("0042-test.md" in p for p in paths_str))
+        self.assertTrue(any("0099-other.md" in p for p in paths_str))
 
 
 class TestFullTextSearch(_TempDirMixin, unittest.TestCase):

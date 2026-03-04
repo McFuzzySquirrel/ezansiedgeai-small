@@ -58,12 +58,69 @@ def _default_journey_dir() -> Path:
     return _repo_root() / "ejs-docs" / "journey"
 
 
+# Directories to skip when recursively scanning the repo for ADR files.
+_SCAN_SKIP_DIRS = frozenset({
+    ".git", "node_modules", "dist", ".parcel-cache", "__pycache__",
+    ".pytest_cache", ".mypy_cache", ".tox", ".venv", "venv",
+    "_templates",
+})
+
+
+def _discover_adr_files(repo_root: Path, adr_dir: Path) -> list[Path]:
+    """Discover all ADR markdown files across the entire repository.
+
+    Starts with files in the canonical *adr_dir*, then walks the rest of
+    the repository tree to find ADR files that live outside that directory.
+    Directories listed in ``_SCAN_SKIP_DIRS`` are pruned for performance.
+    """
+    seen_paths: set[Path] = set()
+    ordered: list[Path] = []
+
+    resolved_adr_dir = adr_dir.resolve() if adr_dir.is_dir() else None
+
+    # 1. Canonical ADR directory (non-recursive, preserves existing behaviour)
+    if resolved_adr_dir is not None:
+        for fp in sorted(adr_dir.glob("*.md")):
+            resolved = fp.resolve()
+            if resolved not in seen_paths:
+                seen_paths.add(resolved)
+                ordered.append(fp)
+
+    # 2. Walk the whole repo for additional ADR files
+    for dirpath, dirnames, filenames in os.walk(repo_root):
+        # Prune skipped directories (modifying dirnames in-place)
+        dirnames[:] = [
+            d for d in dirnames if d not in _SCAN_SKIP_DIRS
+        ]
+        dp = Path(dirpath)
+        # Skip the canonical ADR directory — already processed above
+        if resolved_adr_dir is not None and dp.resolve() == resolved_adr_dir:
+            continue
+        for fn in sorted(filenames):
+            if not fn.endswith(".md"):
+                continue
+            fp = dp / fn
+            resolved = fp.resolve()
+            if resolved in seen_paths:
+                continue
+            seen_paths.add(resolved)
+            ordered.append(fp)
+
+    return ordered
+
+
 # ---------------------------------------------------------------------------
 # Markdown / YAML parsing
 # ---------------------------------------------------------------------------
 
 _FRONTMATTER_RE = re.compile(r"\A---\n(.*?\n)---\n", re.DOTALL)
 _ADR_ID_RE = re.compile(r"^\s*adr_id:\s*(\S+)", re.MULTILINE)
+
+# Regex to extract a numeric ADR identifier from a filename.
+# Matches patterns like: ADR-001-title.md, adr-001-title.md, 0042-title.md
+_FILENAME_ADR_ID_RE = re.compile(
+    r"^(?:adr[_-]?)?(\d+)(?:-[a-zA-Z].*)?\.md$", re.IGNORECASE,
+)
 
 
 def _parse_frontmatter(text: str) -> dict[str, Any]:
@@ -98,42 +155,139 @@ def _extract_section(text: str, heading: str) -> str:
 
 
 def parse_adr_file(filepath: Path) -> dict[str, Any] | None:
-    """Parse a single ADR markdown file into a dict of metadata + sections."""
+    """Parse a single ADR markdown file into a dict of metadata + sections.
+
+    Supports two formats:
+    1. **EJS format** — YAML frontmatter with an ``ejs:`` block containing
+       ``adr_id``, ``title``, ``status``, etc.
+    2. **Plain / Nygard format** — No frontmatter; uses markdown headings
+       (``# Title``, ``## Status``, ``## Context``, ``## Decision``, …).
+
+    The EJS format is tried first.  If the file lacks EJS frontmatter the
+    plain parser is used as a fallback so that conventional ADRs created by
+    sub-agents or other tooling are still indexed.
+    """
     text = filepath.read_text(encoding="utf-8")
 
     fm = _parse_frontmatter(text)
-    if not fm:
+
+    # --- EJS-format path ---
+    if fm:
+        ejs = fm.get("ejs", {})
+        if isinstance(ejs, dict) and ejs:
+            # Extract adr_id from raw frontmatter text to avoid YAML octal
+            # interpretation (e.g. 0042 parsed as decimal 34).
+            fm_match = _FRONTMATTER_RE.match(text)
+            raw_fm = fm_match.group(1) if fm_match else ""
+            id_match = _ADR_ID_RE.search(raw_fm)
+            adr_id = id_match.group(1) if id_match else ""
+            if not adr_id or adr_id == "XXXX":
+                return None  # Skip template
+
+            actors = fm.get("actors", {}) or {}
+            ctx = fm.get("context", {}) or {}
+
+            return {
+                "adr_id": adr_id,
+                "title": ejs.get("title", ""),
+                "date": str(ejs.get("date", "")),
+                "status": ejs.get("status", ""),
+                "session_id": ejs.get("session_id", ""),
+                "session_journey": ejs.get("session_journey", ""),
+                "actors_humans": json.dumps(actors.get("humans", [])),
+                "actors_agents": json.dumps(actors.get("agents", [])),
+                "context_repo": ctx.get("repo", ""),
+                "context_branch": ctx.get("branch", ""),
+                "decision": _extract_section(text, "Decision"),
+                "context_section": _extract_section(text, "Context"),
+                "rationale": _extract_section(text, "Rationale"),
+                "consequences": _extract_section(text, "Consequences"),
+                "key_learnings": _extract_section(text, "Key Learnings"),
+                "agent_guidance": _extract_section(text, "Agent Guidance"),
+                "file_path": str(filepath.relative_to(_repo_root())),
+            }
+
+    # --- Plain / Nygard-format fallback ---
+    return _parse_plain_adr(text, filepath)
+
+
+def _parse_plain_adr(text: str, filepath: Path) -> dict[str, Any] | None:
+    """Parse a plain (Nygard-style) ADR that has no YAML frontmatter.
+
+    Expected structure::
+
+        # <Number>. <Title>    — or —    # ADR-<Number>: <Title>
+        ## Status
+        <status text>
+        ## Context
+        ...
+        ## Decision
+        ...
+        ## Consequences
+        ...
+
+    The ADR identifier is derived from the first ``#`` heading or, failing
+    that, from the filename (e.g. ``ADR-001-some-title.md`` → ``ADR-001``).
+    Files that cannot be identified as ADRs are skipped (returns ``None``).
+    """
+    # Try to extract title + id from the first H1 heading
+    title_match = re.search(r"^#\s+(.+)", text, re.MULTILINE)
+    if not title_match:
+        return None  # No heading — not an ADR
+
+    raw_title = title_match.group(1).strip()
+
+    # Derive adr_id from the heading text.
+    # Patterns: "1. Title", "ADR-001: Title", "ADR 001 - Title", "001 - Title"
+    id_from_heading = re.match(
+        r"(?:ADR[_\s-]*)?(\d+)[\s.:)\-—]+\s*(.*)",
+        raw_title,
+        re.IGNORECASE,
+    )
+
+    if id_from_heading:
+        adr_id = f"ADR-{id_from_heading.group(1).zfill(3)}"
+        title = id_from_heading.group(2).strip() or raw_title
+    else:
+        # Fall back to filename for the id
+        fn_match = _FILENAME_ADR_ID_RE.match(filepath.name)
+        if not fn_match:
+            return None  # Cannot determine an id — skip
+        adr_id = f"ADR-{fn_match.group(1).zfill(3)}"
+        title = raw_title
+
+    # Skip obvious template files
+    lower_title = title.lower()
+    if "template" in lower_title and adr_id == "ADR-000":
         return None
 
-    ejs = fm.get("ejs", {})
-    if not isinstance(ejs, dict):
+    # A valid plain ADR must have at least a Decision or Context section
+    decision = _extract_section(text, "Decision")
+    context_section = _extract_section(text, "Context")
+    if not decision and not context_section:
         return None
 
-    # Extract adr_id from raw frontmatter text to avoid YAML octal
-    # interpretation (e.g. 0042 parsed as decimal 34).
-    fm_match = _FRONTMATTER_RE.match(text)
-    raw_fm = fm_match.group(1) if fm_match else ""
-    id_match = _ADR_ID_RE.search(raw_fm)
-    adr_id = id_match.group(1) if id_match else ""
-    if not adr_id or adr_id == "XXXX":
-        return None  # Skip template
+    # Extract Status from the ## Status section
+    status_raw = _extract_section(text, "Status")
+    status_text = status_raw.split("\n", 1)[0].strip() if status_raw else ""
 
-    actors = fm.get("actors", {}) or {}
-    ctx = fm.get("context", {}) or {}
+    # Extract date from ## Date section if present
+    date_raw = _extract_section(text, "Date")
+    date_text = date_raw.split("\n", 1)[0].strip() if date_raw else ""
 
     return {
         "adr_id": adr_id,
-        "title": ejs.get("title", ""),
-        "date": str(ejs.get("date", "")),
-        "status": ejs.get("status", ""),
-        "session_id": ejs.get("session_id", ""),
-        "session_journey": ejs.get("session_journey", ""),
-        "actors_humans": json.dumps(actors.get("humans", [])),
-        "actors_agents": json.dumps(actors.get("agents", [])),
-        "context_repo": ctx.get("repo", ""),
-        "context_branch": ctx.get("branch", ""),
-        "decision": _extract_section(text, "Decision"),
-        "context_section": _extract_section(text, "Context"),
+        "title": title,
+        "date": date_text,
+        "status": status_text.lower() if status_text else "",
+        "session_id": "",
+        "session_journey": "",
+        "actors_humans": json.dumps([]),
+        "actors_agents": json.dumps([]),
+        "context_repo": "",
+        "context_branch": "",
+        "decision": decision,
+        "context_section": context_section,
         "rationale": _extract_section(text, "Rationale"),
         "consequences": _extract_section(text, "Consequences"),
         "key_learnings": _extract_section(text, "Key Learnings"),
@@ -413,15 +567,25 @@ def cmd_sync(conn: sqlite3.Connection, adr_dir: Path,
 
 
 def _sync_adrs(conn: sqlite3.Connection, adr_dir: Path) -> int:
-    """Sync ADR markdown files into the database."""
+    """Sync ADR markdown files into the database.
+
+    Scans the canonical *adr_dir* **and** the entire repository tree so
+    that ADRs placed in non-standard locations are also discovered and
+    indexed.
+    """
     if not adr_dir.is_dir():
         print(f"ADR directory not found: {adr_dir}", file=sys.stderr)
         return 1
 
+    repo_root = _repo_root()
+    all_files = _discover_adr_files(repo_root, adr_dir)
+
     now = datetime.now(timezone.utc).isoformat()
     count = 0
+    extra = 0
+    resolved_adr_dir = adr_dir.resolve()
     disk_ids: set[str] = set()
-    for fp in sorted(adr_dir.glob("*.md")):
+    for fp in all_files:
         record = parse_adr_file(fp)
         if record is None:
             continue
@@ -429,6 +593,11 @@ def _sync_adrs(conn: sqlite3.Connection, adr_dir: Path) -> int:
         record["last_synced"] = now
         conn.execute(_UPSERT, record)
         count += 1
+        # Track ADRs found outside the canonical directory
+        try:
+            fp.resolve().relative_to(resolved_adr_dir)
+        except ValueError:
+            extra += 1
 
     # Remove ADRs that no longer exist on disk
     db_ids = {row["adr_id"] for row in conn.execute("SELECT adr_id FROM adrs")}
@@ -437,7 +606,10 @@ def _sync_adrs(conn: sqlite3.Connection, adr_dir: Path) -> int:
         conn.execute("DELETE FROM adrs WHERE adr_id = ?", (sid,))
 
     conn.commit()
-    print(f"Synced {count} ADR(s). Removed {len(stale)} stale record(s).")
+    msg = f"Synced {count} ADR(s). Removed {len(stale)} stale record(s)."
+    if extra:
+        msg += f" ({extra} found outside {adr_dir})"
+    print(msg)
     return 0
 
 
