@@ -37,17 +37,19 @@ Each phase builds on the previous one. Do not start Phase N+1 work until Phase N
 - **Result:** GO — Qwen2.5-1.5B-Instruct Q4_K_M via llama.cpp. 4 models benchmarked (12 prompts × 3 runs each). Only Qwen2.5-1.5B passes all criteria. SmolLM2-1.7B is backup (fastest but exceeds RAM by 8%). See [ADR 0006](../../ejs-docs/adr/0006-qwen25-1.5b-as-on-device-llm.md), [spike report](../../spikes/p0-001-llm-inference/reports/spike-report.md).
 - **Completed:** 2026-03-03 | Branch: `spike/p0-001-llm-inference`
 
-### P0-002: Local Embedding + Retrieval Spike (+ Storage Budget)
+### P0-002: Local Embedding + Retrieval Spike (+ Storage Budget) ✅
 
 - **Description:** Run a tiny embedding model (~50–100 MB) on-device. Embed a sample set of 50 curriculum content chunks. Perform vector similarity search and measure retrieval quality and latency. Also validates the full on-device storage footprint (scope absorbed from original P0-003) and defines a revised storage budget as a component split (APK + models + content packs).
 - **Acceptance Criteria:**
-  - [ ] Embedding model loads and produces vectors in < 2 seconds for a single query.
-  - [ ] Top-3 retrieval accuracy ≥ 80% on 20 hand-crafted test queries against the sample set.
-  - [ ] Vector search completes in < 500 ms.
-  - [ ] Document embedding model candidates, vector DB options, and retrieval quality results.
-  - [ ] Total on-device storage footprint documented with per-component breakdown.
-  - [ ] Revised storage budget defined (APK ≤ 50 MB, models downloaded separately, content packs ≤ 200 MB each).
+  - [x] Embedding model loads and produces vectors in < 2 seconds for a single query. *(all-MiniLM-L6-v2: 0.13s load, 10ms query embed)*
+  - [x] Top-3 retrieval accuracy ≥ 80% on 20 hand-crafted test queries against the sample set. *(all-MiniLM-L6-v2: 100%)*
+  - [x] Vector search completes in < 500 ms. *(FAISS Flat: 0.06ms)*
+  - [x] Document embedding model candidates, vector DB options, and retrieval quality results.
+  - [x] Total on-device storage footprint documented with per-component breakdown.
+  - [x] Revised storage budget defined (APK ≤ 50 MB, models downloaded separately, content packs ≤ 200 MB each).
 - **Output:** Spike report + recommendation on embedding model and local vector store + revised storage budget + ADR 0007.
+- **Result:** GO — all-MiniLM-L6-v2 + FAISS Flat. 12 combinations benchmarked (3 models × 4 stores). 8/12 pass. all-MiniLM-L6-v2 achieves 100% retrieval accuracy across all 4 stores (87 MB, ~10ms embed, 554 MB peak RAM). bge-small-en-v1.5 eliminated (128 MB exceeds 100 MB limit). gte-small passes but 3× slower and 5% less accurate. Vector store choice irrelevant at content-pack scale (<1,000 chunks). Storage budget redefined as component model: APK ≤50 MB + LLM ~1,066 MB + embedding ~87 MB + packs ≤200 MB = ~1,403 MB first-launch download. RAM headroom confirmed: 554 MB peak vs 1,161 MB budget on 4 GB devices. See [ADR 0007](../../ejs-docs/adr/0007-embedding-model-vector-store-storage-budget.md), [spike report](../../spikes/p0-002-embedding-retrieval/reports/spike-report.md).
+- **Completed:** 2026-03-04 | Branch: `spike/p0-002-embedding-retrieval`
 
 ### P0-003: Battery & Thermal Validation
 
@@ -58,27 +60,31 @@ Each phase builds on the previous one. Do not start Phase N+1 work until Phase N
   - [ ] Results documented for at least 2 device profiles (low-end 4 GB, mid-range 6 GB).
   - [ ] Feasibility verdict: GO / NO-GO / CONDITIONAL with stated conditions.
 - **Output:** Battery & thermal test report + go/no-go decision.
-- **Note:** Storage footprint validation moved to P0-002. Device RAM floor raised from 3 GB to 4 GB (marketed) based on P0-001 results — see [ADR 0006](../../ejs-docs/adr/0006-qwen25-1.5b-as-on-device-llm.md).
+- **Note:** Storage footprint validation moved to P0-002 (now complete). Device RAM floor raised from 3 GB to 4 GB (marketed) — see [ADR 0007](../../ejs-docs/adr/0007-embedding-model-vector-store-storage-budget.md). Deferred until real hardware available; not on the critical path for P0-004/P0-005.
 
 ### P0-004: Sample Content Pack Creation
 
-- **Description:** Author 10 curriculum-aligned content chunks for Grade 6 fractions (CAPS Term 1). Pre-compute embeddings. Package as a prototype content pack matching the planned schema.
+- **Description:** Author 10 curriculum-aligned content chunks for Grade 6 fractions (CAPS Term 1). Pre-compute embeddings using all-MiniLM-L6-v2 (ADR 0007). Build a FAISS Flat index. Package as a prototype content pack matching the planned schema.
 - **Acceptance Criteria:**
   - [ ] 10 chunks authored in Markdown, each ≤ 2 000 tokens.
   - [ ] Each chunk tagged with `topic_path` matching CAPS pacing.
-  - [ ] Embeddings pre-computed and bundled.
+  - [ ] Embeddings pre-computed using all-MiniLM-L6-v2 and bundled as FAISS Flat index.
   - [ ] Manifest JSON with version, checksums, and metadata.
+  - [ ] Pack size ≤ 200 MB (per ADR 0007 storage budget).
 - **Output:** Prototype pack artifact (`maths-grade6-caps-prototype`).
+- **Depends on:** P0-002 ✅ (embedding model + vector store selected)
 
 ### P0-005: End-to-End Pipeline Smoke Test
 
-- **Description:** Wire P0-001 + P0-002 + P0-004 together. Input a question, embed it, retrieve relevant chunks, build a grounded prompt, generate an explanation. Validate the full pipeline on the target emulator.
+- **Description:** Wire P0-001 (Qwen2.5-1.5B LLM) + P0-002 (all-MiniLM-L6-v2 embedding + FAISS Flat) + P0-004 (sample content pack) together. Input a question, embed it, retrieve relevant chunks, build a grounded prompt, generate an explanation. Validate the full pipeline on the target emulator.
 - **Acceptance Criteria:**
   - [ ] Pipeline runs end-to-end without crashes.
   - [ ] Generated explanation references retrieved content (not hallucinated).
   - [ ] Total latency (embed + retrieve + generate) < 15 seconds.
+  - [ ] Peak RAM validated for sequential model loading (LLM and embedding model do not run simultaneously — see ADR 0007 Agent Guidance).
   - [ ] Documented as a recorded demo or screenshot sequence.
 - **Output:** Working prototype + demo recording.
+- **Depends on:** P0-001 ✅, P0-002 ✅, P0-004
 
 ---
 
@@ -180,7 +186,7 @@ Each phase builds on the previous one. Do not start Phase N+1 work until Phase N
 - **Acceptance Criteria:**
   - [ ] `python pack-builder.py build --input ./content/ --output ./dist/` produces a valid pack.
   - [ ] Validates chunk size (≤ 2 000 tokens), required metadata fields, and topic_path format.
-  - [ ] Computes embeddings using the same model used on-device.
+  - [ ] Computes embeddings using all-MiniLM-L6-v2 (same model used on-device — ADR 0007).
   - [ ] Generates SHA-256 checksums in the manifest.
   - [ ] Runs fully offline (no API calls to external services).
 
