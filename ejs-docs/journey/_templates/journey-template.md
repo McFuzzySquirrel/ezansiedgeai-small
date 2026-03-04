@@ -19,24 +19,27 @@ Capture the human↔agent collaboration trail in a concise, chronological form.
 
 Recommended format:
 - Human: <prompt / request>
-  - Agent: <response / guidance>
+  - Agent [agent-name]: <response / guidance>
   - Outcome: <what changed / what was decided>
 
 Do:
-- Include key prompts, constraints, and “why” questions.
+- Attribute every entry by agent name (e.g., `Agent [copilot]`, `Agent [claude]`, `Agent [ejs-journey]`).
+- Include key prompts, constraints, and "why" questions.
 - Include pivotal corrections/pivots and what triggered them.
+- Record sub-agent delegations inline (e.g., "Agent [copilot] delegated testing to sub-agent [test-agent]").
 
 Avoid:
 - Pasting full transcripts.
 - Including secrets, tokens, or sensitive content.
+- Omitting agent names — every action must be attributed.
 
 # Agent Collaboration Summary
-Key prompts used
-Key suggestions
-Corrections required
+Which agents participated (by name):
+Key suggestions made (and by which agent):
+Corrections applied by human:
 
 # Sub-Agent Contributions
-When the main agent delegates work to sub-agents, capture each sub-agent's contribution here.
+When any agent delegates work to sub-agents, capture each sub-agent's contribution here (attributed by name).
 
 ## Sub-Agent: <agent-name / agent-type>
 - **Task delegated:** What was the sub-agent asked to do?
@@ -48,10 +51,10 @@ When the main agent delegates work to sub-agents, capture each sub-agent's contr
 (Repeat for each sub-agent involved. Remove this section if no sub-agents were used.)
 
 # Agent Influence (Required)
-Where did the agent influence the outcome?
-- Suggestions adopted:
-- Suggestions rejected (and why):
-- Human overrides / corrections:
+Track how each agent influenced the outcome (attribute by name).
+- Suggestions adopted (which agent, what suggestion):
+- Suggestions rejected (which agent, what suggestion, why rejected):
+- Human overrides / corrections (what was changed, which agent was overridden):
 
 # Experiments / Evidence
 What was tried?  

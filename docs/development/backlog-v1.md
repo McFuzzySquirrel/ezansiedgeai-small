@@ -25,15 +25,17 @@ Each phase builds on the previous one. Do not start Phase N+1 work until Phase N
 
 > **Goal:** Prove that the core technical approach works on target hardware. Kill risks early.
 
-### P0-001: On-Device LLM Inference Spike
+### P0-001: On-Device LLM Inference Spike ✅
 
 - **Description:** Run a quantized SLM (≤ 2 GB, INT4/INT8) on an Android emulator matching the target device profile. Measure latency, RAM usage, thermal behaviour, and output quality for curriculum-style prompts.
 - **Acceptance Criteria:**
-  - [ ] Model loads in < 5 seconds on the target emulator.
-  - [ ] Generates a coherent 150-token response in < 10 seconds.
-  - [ ] Peak RAM usage stays below 2 GB.
-  - [ ] Document model candidates tested, latency numbers, and RAM profiles in a spike report.
+  - [x] Model loads in < 5 seconds on the target emulator. *(Qwen2.5-1.5B: 0.784s)*
+  - [x] Generates a coherent 150-token response in < 10 seconds. *(Qwen2.5-1.5B: 8.0s avg)*
+  - [x] Peak RAM usage stays below 2 GB. *(Qwen2.5-1.5B: 1,839 MB)*
+  - [x] Document model candidates tested, latency numbers, and RAM profiles in a spike report.
 - **Output:** Spike report + recommendation on model + runtime (llama.cpp vs ONNX Runtime vs other).
+- **Result:** GO — Qwen2.5-1.5B-Instruct Q4_K_M via llama.cpp. 4 models benchmarked (12 prompts × 3 runs each). Only Qwen2.5-1.5B passes all criteria. SmolLM2-1.7B is backup (fastest but exceeds RAM by 8%). See [ADR 0006](../../ejs-docs/adr/0006-qwen25-1.5b-as-on-device-llm.md), [spike report](../../spikes/p0-001-llm-inference/reports/spike-report.md).
+- **Completed:** 2026-03-03 | Branch: `spike/p0-001-llm-inference`
 
 ### P0-002: Local Embedding + Retrieval Spike
 
@@ -53,6 +55,7 @@ Each phase builds on the previous one. Do not start Phase N+1 work until Phase N
   - [ ] If over budget: identify which component to compress, quantize further, or split.
   - [ ] Feasibility verdict: GO / NO-GO / CONDITIONAL with stated conditions.
 - **Output:** Size budget spreadsheet + go/no-go decision.
+- **⚠️ Note from P0-001:** Qwen2.5-1.5B model alone is 1,066 MB — far exceeds the 150 MB *installed* budget. The 150 MB target likely needs reinterpretation (APK excluding model, or model downloaded separately). RAM budget is also tight: 1,839 MB of 2,048 MB used by LLM alone, leaving ~209 MB for embedding model + vector DB + app.
 
 ### P0-004: Sample Content Pack Creation
 

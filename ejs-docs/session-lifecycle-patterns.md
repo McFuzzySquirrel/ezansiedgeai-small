@@ -6,6 +6,16 @@ EJS uses a **start-of-session initialization** with **continuous updates** appro
 
 This pattern produces higher-quality documentation by capturing context in real-time as work progresses.
 
+EJS is a **non-competing observer** — it records what agents and humans do without interfering with implementation. Recording happens silently as a side-effect of normal work. How this lifecycle activates depends on the adoption tier:
+
+| Tier | How it activates | Who records |
+|------|-----------------|-------------|
+| **Tier 1** (always-on) | Appended to `copilot-instructions.md` | Whatever agent is active records silently |
+| **Tier 2** (bookend) | User invokes `@ejs-journey` at start/end | EJS initializes/finalizes; active agent records in between |
+| **Tier 3** (coordinator) | User selects `ejs-journey` from dropdown | EJS delegates to sub-agents and records directly |
+
+The lifecycle phases below apply to all tiers — the difference is which agent performs the recording.
+
 ## Flow Diagrams
 
 ### Single User-Agent Interaction
@@ -319,8 +329,13 @@ Key points:
 
 **What to Update:**
 1. **Interaction Summary** - Add each meaningful human↔agent exchange as it occurs
-   - Format: `- Human: <prompt> → Agent: <response> → Outcome: <result>`
-   - Capture pivotal questions, constraints, and corrections in real-time
+   - Format:
+     ```
+     - Human: <prompt / request>
+       - Agent [agent-name]: <response summary>
+       - Outcome: <what changed / what was decided>
+     ```
+   - Attribute every entry by agent name. Capture pivotal questions, constraints, and corrections in real-time
 
 2. **Experiments/Evidence** - Record as experiments happen
    - What was tried
@@ -431,15 +446,15 @@ Key points:
 "Begin session: [problem statement]"
 ```
 
-### During Session (Implicit)
-Agents should automatically update the Session Journey when:
+### During Session (Silent — No Prompting)
+Agents silently update the Session Journey as a side-effect of normal work when:
 - A decision is made
 - An experiment completes
 - A pivot occurs
 - A learning emerges
 - A meaningful interaction occurs
 
-No explicit prompt needed if the agent is following EJS contracts.
+No explicit prompt needed — the agent records automatically without asking the user. This is the core EJS contract: **capture without interrupting**.
 
 ### Explicitly Request Update (Optional)
 ```
@@ -487,40 +502,40 @@ No explicit prompt needed if the agent is following EJS contracts.
 
 ```
 Human: "Let's start working on refactoring the authentication module"
-Agent: Runs `adr-db.py sync` to refresh the index
-       Creates ejs-docs/journey/2026/ejs-session-2026-02-07-01.md
-       Populates metadata and initial problem/intent
-       "Session initialized: ejs-session-2026-02-07-01"
+Agent [Copilot]: Runs `adr-db.py sync` to refresh the index
+                 Creates ejs-docs/journey/2026/ejs-session-2026-02-07-01.md
+                 Populates metadata and initial problem/intent
+                 "Session initialized: ejs-session-2026-02-07-01"
 
 [Work begins]
 Human: "Extract the JWT validation into a separate function"
-Agent: Runs `adr-db.py search "JWT"` to check past decisions
-       Implements the refactoring
-       Updates Interaction Summary in session journey
-       Updates Iteration Log
+Agent [Copilot]: Runs `adr-db.py search "JWT"` to check past decisions
+                 Implements the refactoring
+                 Silently updates Interaction Summary in session journey
+                 Silently updates Iteration Log
 
 [More work]
 Human: "Should we use bcrypt or argon2 for password hashing?"
-Agent: Runs `adr-db.py search "password hashing"` for prior context
-       Discusses trade-offs (security vs. performance)
-       Updates Decisions Made in session journey
-       Flags as potential ADR candidate (security decision)
+Agent [Copilot]: Runs `adr-db.py search "password hashing"` for prior context
+                 Discusses trade-offs (security vs. performance)
+                 Silently updates Decisions Made in session journey
+                 Flags as potential ADR candidate (security decision)
 
 [More work]
 Human: "Actually, let's stick with bcrypt for now since it's already in use"
-Agent: Implements decision
-       Updates Decisions Made with rationale (consistency)
-       Updates Iteration Log (pivot from argon2 consideration)
+Agent [Copilot]: Implements decision
+                 Silently updates Decisions Made with rationale (consistency)
+                 Silently updates Iteration Log (pivot from argon2 consideration)
 
 [Session wraps up]
 Human: "Wrap up this session"
-Agent: Finalizes Session Journey
-       - Completes all sections
-       - Populates machine extracts
-       - Reviews ADR criteria (decision on bcrypt = significant enough? No, minor)
-       - Sets decision_detected: false
-       - No ADR created
-       "Session finalized: ejs-session-2026-02-07-01"
+Agent [Copilot]: Finalizes Session Journey
+                 - Completes all sections
+                 - Populates machine extracts
+                 - Reviews ADR criteria (decision on bcrypt = significant enough? No, minor)
+                 - Sets decision_detected: false
+                 - No ADR created
+                 "Session finalized: ejs-session-2026-02-07-01"
 ```
 
 ## Anti-Patterns to Avoid

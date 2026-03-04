@@ -1,0 +1,74 @@
+# P0-001: LLM Inference Spike Configuration
+# -----------------------------------------
+# Candidate models and benchmark parameters for on-device LLM feasibility.
+
+# Target device constraints (from docs/architecture/phone-architecture.md)
+target_device:
+  name: "Mobicel Hero (low-spec baseline)"
+  ram_total_mb: 3072        # 3 GB total device RAM
+  ram_budget_mb: 2048       # ≤ 2 GB for the app (leave ≥ 1 GB for OS)
+  cpu: "ARMv8-A (Cortex-A53 class)"
+  android_api: 29
+  storage_budget_mb: 150    # Total app footprint budget
+
+# Benchmark parameters
+benchmark:
+  max_tokens: 150           # Generate this many tokens per prompt
+  n_ctx: 2048               # Context window size
+  temperature: 0.3          # Low temperature for factual, curriculum content
+  top_p: 0.9
+  repeat_penalty: 1.1
+  seed: 42                  # Reproducible results
+  warmup_runs: 1            # Discard first run for JIT/cache warmup
+  benchmark_runs: 3         # Average over this many runs per prompt
+  n_threads: 4              # Simulate mid-range phone CPU threads
+
+# Acceptance criteria (from docs/development/backlog-v1.md)
+acceptance_criteria:
+  model_load_time_s: 5.0    # Model must load in < 5 seconds
+  generation_time_s: 10.0   # 150-token response in < 10 seconds
+  peak_ram_mb: 2048         # Peak RAM must stay below 2 GB
+
+# Candidate models — GGUF format from HuggingFace
+models:
+  - id: "qwen2.5-1.5b"
+    name: "Qwen2.5-1.5B-Instruct"
+    repo: "Qwen/Qwen2.5-1.5B-Instruct-GGUF"
+    filename: "qwen2.5-1.5b-instruct-q4_k_m.gguf"
+    size_estimate_mb: 1100
+    notes: "Smallest strong candidate. Good multilingual support."
+
+  - id: "smollm2-1.7b"
+    name: "SmolLM2-1.7B-Instruct"
+    repo: "bartowski/SmolLM2-1.7B-Instruct-GGUF"
+    filename: "SmolLM2-1.7B-Instruct-Q4_K_M.gguf"
+    size_estimate_mb: 1000
+    notes: "HuggingFace's efficient small model. Strong for its size."
+
+  - id: "gemma-2-2b"
+    name: "Gemma-2-2B-it"
+    repo: "bartowski/gemma-2-2b-it-GGUF"
+    filename: "gemma-2-2b-it-Q4_K_M.gguf"
+    size_estimate_mb: 1500
+    notes: "Google's instruction-tuned 2B. Good reasoning."
+
+  - id: "phi-3.5-mini"
+    name: "Phi-3.5-mini-instruct"
+    repo: "bartowski/Phi-3.5-mini-instruct-GGUF"
+    filename: "Phi-3.5-mini-instruct-Q4_K_M.gguf"
+    size_estimate_mb: 2200
+    notes: "Strongest reasoning but largest. May exceed RAM budget."
+
+# Prompt template for curriculum-style benchmarking
+# Mirrors the production prompt structure from phone-architecture.md
+prompt_template: |
+  You are a Grade 6 Maths tutor helping South African learners.
+  Answer ONLY using the provided content.
+  If the content does not cover the question, say so.
+  Keep your explanation clear and use a worked example.
+
+  Content:
+  {content}
+
+  Question:
+  {question}
