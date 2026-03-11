@@ -13,9 +13,10 @@ layers: App, AI, Data, and Hardware.
 | Parameter | Minimum | Target | Notes |
 |-----------|---------|--------|-------|
 | Android version | 10 (API 29) | 12+ | Broad device coverage |
-| RAM | 3 GB | 4–6 GB | Must leave ≥1 GB for OS + other apps |
-| Storage (app) | 500 MB | 1 GB | App + base model |
-| Storage (packs) | 200 MB | 1 GB | Per content pack |
+| RAM | 4 GB | 4–6 GB | ~3 GB usable; LLM uses ~1.8 GB, ~1.2 GB for embedding + app. Raised from 3 GB after P0-001 |
+| Storage (APK) | 50 MB | 50 MB | App code only, no models bundled |
+| Storage (models) | 1.1 GB | 1.2 GB | LLM (~1,066 MB) + embedding (~80 MB), downloaded on first launch |
+| Storage (packs) | 200 MB | 1 GB | Per content pack, including pre-computed embeddings |
 | CPU | ARMv8-A (64-bit) | Cortex-A75+ | NEON SIMD required for inference |
 | NPU | Not assumed | Delegated if present | NNAPI / Qualcomm QNN |
 | Network | None | WiFi (LAN) | Internet never required |

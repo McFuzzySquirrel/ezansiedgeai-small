@@ -1,0 +1,146 @@
+{
+  "description": "20 hand-crafted test queries for retrieval accuracy benchmarking. Each query has expected relevant chunk IDs to measure top-3 retrieval accuracy. Queries simulate real Grade 6 learner questions.",
+  "version": "0.1.0",
+  "queries": [
+    {
+      "id": "q01",
+      "question": "What is a fraction and what do the top and bottom numbers mean?",
+      "expected_chunk_ids": ["fractions-basics-001", "fractions-basics-002"],
+      "difficulty": "basic",
+      "topic_area": "fractions"
+    },
+    {
+      "id": "q02",
+      "question": "How do I make equivalent fractions?",
+      "expected_chunk_ids": ["fractions-equivalent-001", "fractions-simplifying-001"],
+      "difficulty": "basic",
+      "topic_area": "fractions"
+    },
+    {
+      "id": "q03",
+      "question": "How do I add 2/5 and 1/3 together?",
+      "expected_chunk_ids": ["fractions-addition-002", "fractions-addition-001"],
+      "difficulty": "intermediate",
+      "topic_area": "fractions"
+    },
+    {
+      "id": "q04",
+      "question": "How do you divide fractions? What does keep change flip mean?",
+      "expected_chunk_ids": ["fractions-division-001"],
+      "difficulty": "intermediate",
+      "topic_area": "fractions"
+    },
+    {
+      "id": "q05",
+      "question": "Thandi has R80 and she spends 3/4 of it. How much did she spend?",
+      "expected_chunk_ids": ["fractions-word-problems-001", "fractions-word-problems-002"],
+      "difficulty": "intermediate",
+      "topic_area": "fractions"
+    },
+    {
+      "id": "q06",
+      "question": "How do I change a fraction into a decimal?",
+      "expected_chunk_ids": ["fractions-decimals-001", "fractions-percentages-001"],
+      "difficulty": "intermediate",
+      "topic_area": "fractions"
+    },
+    {
+      "id": "q07",
+      "question": "What is the place value of each digit in 23.456?",
+      "expected_chunk_ids": ["decimals-place-value-001", "decimals-comparing-001"],
+      "difficulty": "basic",
+      "topic_area": "decimals"
+    },
+    {
+      "id": "q08",
+      "question": "How do I multiply 4.5 by 100?",
+      "expected_chunk_ids": ["decimals-multiplication-001", "decimals-multiplication-002"],
+      "difficulty": "basic",
+      "topic_area": "decimals"
+    },
+    {
+      "id": "q09",
+      "question": "How do I round 7.863 to one decimal place?",
+      "expected_chunk_ids": ["decimals-rounding-001"],
+      "difficulty": "basic",
+      "topic_area": "decimals"
+    },
+    {
+      "id": "q10",
+      "question": "What types of angles are there? What is an obtuse angle?",
+      "expected_chunk_ids": ["geometry-angles-001", "geometry-angles-002"],
+      "difficulty": "basic",
+      "topic_area": "geometry"
+    },
+    {
+      "id": "q11",
+      "question": "What are the properties of a parallelogram and how is it different from a rectangle?",
+      "expected_chunk_ids": ["geometry-2d-shapes-001", "geometry-quadrilaterals-001"],
+      "difficulty": "intermediate",
+      "topic_area": "geometry"
+    },
+    {
+      "id": "q12",
+      "question": "How many lines of symmetry does a square have?",
+      "expected_chunk_ids": ["geometry-symmetry-001"],
+      "difficulty": "basic",
+      "topic_area": "geometry"
+    },
+    {
+      "id": "q13",
+      "question": "How do I calculate the perimeter of a rectangle that is 12 cm long and 7 cm wide?",
+      "expected_chunk_ids": ["measurement-perimeter-001"],
+      "difficulty": "basic",
+      "topic_area": "measurement"
+    },
+    {
+      "id": "q14",
+      "question": "What is the area of a triangle with base 8 cm and height 5 cm?",
+      "expected_chunk_ids": ["measurement-area-002", "measurement-area-001"],
+      "difficulty": "intermediate",
+      "topic_area": "measurement"
+    },
+    {
+      "id": "q15",
+      "question": "How do I convert 3.5 kilometres to metres?",
+      "expected_chunk_ids": ["measurement-conversions-001"],
+      "difficulty": "basic",
+      "topic_area": "measurement"
+    },
+    {
+      "id": "q16",
+      "question": "How do I calculate the average of my test marks?",
+      "expected_chunk_ids": ["data-handling-mean-001", "data-handling-median-mode-001"],
+      "difficulty": "basic",
+      "topic_area": "data_handling"
+    },
+    {
+      "id": "q17",
+      "question": "What is the next number in the pattern 3, 9, 27, 81?",
+      "expected_chunk_ids": ["patterns-number-sequences-001"],
+      "difficulty": "basic",
+      "topic_area": "patterns"
+    },
+    {
+      "id": "q18",
+      "question": "How do I solve the equation 2x + 5 = 17?",
+      "expected_chunk_ids": ["patterns-equations-001", "patterns-algebraic-001"],
+      "difficulty": "intermediate",
+      "topic_area": "patterns"
+    },
+    {
+      "id": "q19",
+      "question": "Share R200 between two people in the ratio 3:5",
+      "expected_chunk_ids": ["ratio-sharing-001", "ratio-basics-001"],
+      "difficulty": "intermediate",
+      "topic_area": "ratio"
+    },
+    {
+      "id": "q20",
+      "question": "If 6 apples cost R18 how much would 10 apples cost?",
+      "expected_chunk_ids": ["ratio-proportion-001", "ratio-rate-001"],
+      "difficulty": "intermediate",
+      "topic_area": "ratio"
+    }
+  ]
+}

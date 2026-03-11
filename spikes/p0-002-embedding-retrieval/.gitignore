@@ -1,0 +1,12 @@
+# Downloaded embedding models (large, download via scripts/download_models.py)
+models/
+
+# Benchmark results (regenerated via scripts/benchmark.py)
+results/
+
+# Python virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc

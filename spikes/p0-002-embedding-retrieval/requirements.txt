@@ -1,0 +1,24 @@
+# P0-002: Embedding + Retrieval Spike
+# Python 3.10+ required
+
+# Embedding models
+sentence-transformers>=3.0.0
+transformers>=4.40.0
+torch>=2.0.0
+
+# Vector stores
+faiss-cpu>=1.8.0
+hnswlib>=0.8.0
+
+# Memory and system monitoring
+psutil>=6.0.0
+
+# Configuration
+pyyaml>=6.0
+
+# Output formatting
+tabulate>=0.9.0
+jinja2>=3.1.0
+
+# Scientific computing (bundled with torch, listed for clarity)
+numpy>=1.24.0
