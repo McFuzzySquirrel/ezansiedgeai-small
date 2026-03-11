@@ -1,0 +1,92 @@
+{
+  "description": "10 CAPS Grade 6 Term 1 fractions chunks for the prototype content pack. Refined from the P0-002 spike dataset. Covers the full CAPS Term 1 fractions scope: basics, equivalent fractions, simplifying, comparing, addition (same and unlike denominators), subtraction, and word problems (fraction of amount, sharing/remaining).",
+  "version": "0.1.0",
+  "pack_id": "maths-grade6-caps-fractions-v0.1",
+  "subject": "mathematics",
+  "grade": "6",
+  "language": "en",
+  "curriculum": "CAPS",
+  "source": "CAPS Grade 6 Mathematics curriculum, Term 1 — Fractions",
+  "chunks": [
+    {
+      "id": "fractions-basics-001",
+      "topic_path": "term1.fractions.basics",
+      "title": "What is a Fraction?",
+      "content": "A fraction represents a part of a whole. It is written as one number over another, separated by a line. The top number is called the numerator and tells us how many parts we have. The bottom number is called the denominator and tells us how many equal parts the whole is divided into. For example, 3/4 means we have 3 parts out of 4 equal parts. Think of a pizza cut into 4 equal slices — if you eat 3 slices, you have eaten 3/4 of the pizza. The fraction bar means 'out of' or 'divided by'. Every fraction has three parts: the numerator (top), the fraction bar (the line), and the denominator (bottom). The denominator can never be zero because you cannot divide something into zero equal parts.",
+      "difficulty": "basic",
+      "term": 1
+    },
+    {
+      "id": "fractions-basics-002",
+      "topic_path": "term1.fractions.basics",
+      "title": "Types of Fractions",
+      "content": "There are three main types of fractions. A proper fraction has a numerator smaller than its denominator (like 2/5 or 3/8) — it represents less than one whole. An improper fraction has a numerator equal to or larger than its denominator (like 7/4 or 5/3) — it represents one whole or more. A mixed number combines a whole number and a proper fraction (like 1 3/4 or 2 1/3). You can convert between improper fractions and mixed numbers. To convert 7/4 to a mixed number: divide 7 by 4 to get 1 remainder 3, so 7/4 = 1 3/4. To convert 2 1/3 to an improper fraction: multiply the whole number by the denominator and add the numerator: (2 × 3) + 1 = 7, so 2 1/3 = 7/3.",
+      "difficulty": "basic",
+      "term": 1
+    },
+    {
+      "id": "fractions-equivalent-001",
+      "topic_path": "term1.fractions.equivalent",
+      "title": "Equivalent Fractions",
+      "content": "Equivalent fractions are fractions that represent the same value even though they look different. To find an equivalent fraction, multiply or divide both the numerator and the denominator by the same number. For example, 1/2 = 2/4 = 3/6 = 4/8 = 5/10. We can check by simplifying: 4/8 ÷ 4/4 = 1/2. This is also called simplifying or reducing a fraction. To simplify a fraction, find the highest common factor (HCF) of the numerator and denominator and divide both by it. For example, to simplify 12/18: the HCF of 12 and 18 is 6, so 12/18 = (12÷6)/(18÷6) = 2/3. Two fractions are equivalent if their cross products are equal: a/b = c/d when a×d = b×c.",
+      "difficulty": "basic",
+      "term": 1
+    },
+    {
+      "id": "fractions-simplifying-001",
+      "topic_path": "term1.fractions.simplifying",
+      "title": "Simplifying Fractions Using HCF",
+      "content": "Simplifying (or reducing) a fraction means writing it in its simplest form — where the numerator and denominator have no common factors other than 1. Method: Find the Highest Common Factor (HCF) of the numerator and denominator, then divide both by it. Example: Simplify 18/24. Factors of 18: 1, 2, 3, 6, 9, 18. Factors of 24: 1, 2, 3, 4, 6, 8, 12, 24. HCF = 6. So 18/24 = (18÷6)/(24÷6) = 3/4. Quick check: can you divide both by 2? by 3? by 5? Keep dividing until no common factor remains. A fraction is fully simplified when the only common factor of the numerator and denominator is 1. This is also called being 'in lowest terms'.",
+      "difficulty": "intermediate",
+      "term": 1
+    },
+    {
+      "id": "fractions-comparing-001",
+      "topic_path": "term1.fractions.comparing",
+      "title": "Comparing and Ordering Fractions",
+      "content": "To compare fractions, you need a common denominator. Find the lowest common multiple (LCM) of the denominators, convert both fractions to equivalent fractions with that denominator, then compare the numerators. Example: Compare 3/4 and 5/6. The LCM of 4 and 6 is 12. Convert: 3/4 = 9/12 and 5/6 = 10/12. Since 9 < 10, we know 3/4 < 5/6. Quick tips: When fractions have the same denominator, the one with the larger numerator is bigger. When fractions have the same numerator, the one with the smaller denominator is bigger (because each piece is larger). To order fractions from smallest to largest, convert them all to the same denominator first.",
+      "difficulty": "intermediate",
+      "term": 1
+    },
+    {
+      "id": "fractions-addition-001",
+      "topic_path": "term1.fractions.addition",
+      "title": "Adding Fractions with the Same Denominator",
+      "content": "When fractions have the same denominator (called like fractions), adding them is simple: add the numerators and keep the denominator the same. Example: 2/7 + 3/7 = (2+3)/7 = 5/7. Think of it like adding slices of the same pizza — 2 slices plus 3 slices equals 5 slices, and the pizza is still cut into 7 pieces. If the answer is an improper fraction, convert it to a mixed number. Example: 5/8 + 6/8 = 11/8 = 1 3/8. Always simplify your answer if possible. Example: 3/10 + 5/10 = 8/10 = 4/5.",
+      "difficulty": "basic",
+      "term": 1
+    },
+    {
+      "id": "fractions-addition-002",
+      "topic_path": "term1.fractions.addition",
+      "title": "Adding Fractions with Different Denominators",
+      "content": "To add fractions with different denominators (unlike fractions): Step 1: Find a common denominator — the lowest common multiple (LCM) of the two denominators. Step 2: Convert each fraction to an equivalent fraction with that common denominator. Step 3: Add the numerators. Step 4: Keep the common denominator. Step 5: Simplify if possible. Example: 1/3 + 1/4. LCM of 3 and 4 is 12. Convert: 1/3 = 4/12 and 1/4 = 3/12. Add: 4/12 + 3/12 = 7/12. Another example: 2/5 + 1/3. LCM of 5 and 3 is 15. Convert: 2/5 = 6/15 and 1/3 = 5/15. Add: 6/15 + 5/15 = 11/15.",
+      "difficulty": "intermediate",
+      "term": 1
+    },
+    {
+      "id": "fractions-subtraction-001",
+      "topic_path": "term1.fractions.subtraction",
+      "title": "Subtracting Fractions",
+      "content": "Subtracting fractions follows the same rules as adding fractions. With like fractions (same denominator): subtract the numerators and keep the denominator. Example: 5/8 - 3/8 = 2/8 = 1/4. With unlike fractions (different denominators): find a common denominator first, then subtract. Example: 3/4 - 1/3. LCM of 4 and 3 is 12. Convert: 3/4 = 9/12 and 1/3 = 4/12. Subtract: 9/12 - 4/12 = 5/12. When subtracting mixed numbers, you may need to borrow from the whole number. Example: 3 1/4 - 1 3/4. Borrow 1 from 3: 2 5/4 - 1 3/4 = 1 2/4 = 1 1/2.",
+      "difficulty": "intermediate",
+      "term": 1
+    },
+    {
+      "id": "fractions-word-problems-001",
+      "topic_path": "term1.fractions.word_problems",
+      "title": "Finding a Fraction of an Amount",
+      "content": "To find a fraction of an amount, multiply the amount by the fraction. 'Of' means multiply in maths. Steps: Step 1: Write the calculation using × for 'of'. Step 2: Divide the amount by the denominator. Step 3: Multiply by the numerator. Example: Find 2/5 of R60. Step 1: 2/5 × 60. Step 2: 60 ÷ 5 = 12 (one fifth). Step 3: 12 × 2 = 24 (two fifths). So 2/5 of R60 = R24. You can check: R24 is 2 parts, each part is R12, and 5 parts would be 5 × R12 = R60 ✓. Another example: Find 3/4 of 200 grams. 200 ÷ 4 = 50 (one quarter). 50 × 3 = 150 (three quarters). So 3/4 of 200 g = 150 g.",
+      "difficulty": "intermediate",
+      "term": 1
+    },
+    {
+      "id": "fractions-word-problems-002",
+      "topic_path": "term1.fractions.word_problems",
+      "title": "Fraction Word Problems — Sharing and Remaining",
+      "content": "Many fraction word problems involve sharing or finding what is left. Example: Sipho has 24 sweets. He gives 1/3 to his sister and 1/4 to his brother. How many does he have left? Step 1: Find 1/3 of 24 = 8 (given to sister). Step 2: Find 1/4 of 24 = 6 (given to brother). Step 3: Total given away = 8 + 6 = 14. Step 4: Remaining = 24 - 14 = 10 sweets. Alternatively, find the fraction remaining: 1 - 1/3 - 1/4 = 12/12 - 4/12 - 3/12 = 5/12. Then 5/12 of 24 = 10. Both methods give the same answer. Always read the question carefully to identify what fraction operation is needed.",
+      "difficulty": "intermediate",
+      "term": 1
+    }
+  ]
+}

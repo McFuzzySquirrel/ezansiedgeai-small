@@ -62,16 +62,18 @@ Each phase builds on the previous one. Do not start Phase N+1 work until Phase N
 - **Output:** Battery & thermal test report + go/no-go decision.
 - **Note:** Storage footprint validation moved to P0-002 (now complete). Device RAM floor raised from 3 GB to 4 GB (marketed) — see [ADR 0007](../../ejs-docs/adr/0007-embedding-model-vector-store-storage-budget.md). Deferred until real hardware available; not on the critical path for P0-004/P0-005.
 
-### P0-004: Sample Content Pack Creation
+### P0-004: Sample Content Pack Creation ✅
 
-- **Description:** Author 10 curriculum-aligned content chunks for Grade 6 fractions (CAPS Term 1). Pre-compute embeddings using all-MiniLM-L6-v2 (ADR 0007). Build a FAISS Flat index. Package as a prototype content pack matching the planned schema.
+- **Description:** Author 10 curriculum-aligned content chunks for Grade 6 fractions (CAPS Term 1). Pre-compute embeddings using all-MiniLM-L6-v2 (ADR 0007). Build a FAISS Flat index. Package as a prototype content pack in SQLite format (ADR 0008).
 - **Acceptance Criteria:**
-  - [ ] 10 chunks authored in Markdown, each ≤ 2 000 tokens.
-  - [ ] Each chunk tagged with `topic_path` matching CAPS pacing.
-  - [ ] Embeddings pre-computed using all-MiniLM-L6-v2 and bundled as FAISS Flat index.
-  - [ ] Manifest JSON with version, checksums, and metadata.
-  - [ ] Pack size ≤ 200 MB (per ADR 0007 storage budget).
-- **Output:** Prototype pack artifact (`maths-grade6-caps-prototype`).
+  - [x] 10 chunks authored in Markdown, each ≤ 2 000 tokens. *(10 CAPS Term 1 fractions chunks: basics, equivalent, simplifying, comparing, addition ×2, subtraction, word problems ×2)*
+  - [x] Each chunk tagged with `topic_path` matching CAPS pacing. *(`term1.fractions.<subtopic>`)*
+  - [x] Embeddings pre-computed using all-MiniLM-L6-v2 and bundled as FAISS Flat index. *(10 × 384-dim vectors, IndexFlatIP, stored as BLOB in `faiss_indexes` table)*
+  - [x] Manifest JSON with version, checksums, and metadata. *(SQLite `manifest` table: pack_id, version, subject, grade, language, curriculum, chunk_count, embedding_model, schema_version; SHA-256 per chunk in `chunks` table)*
+  - [x] Pack size ≤ 200 MB (per ADR 0007 storage budget). *(76 KB — well within budget)*
+- **Output:** Prototype pack `content-packs/maths-grade6-caps-fractions-v0.1.pack` (SQLite, 76 KB). Build tool: `tools/content-pack-builder/build_pack.py`. Validator: `tools/content-pack-builder/validate_pack.py`.
+- **Result:** GO — SQLite format adopted (ADR 0008). 10 fractions chunks refined from P0-002 spike dataset. Top-3 retrieval accuracy **100%** (10/10 queries). Avg embed time 10.2ms. Avg search time 0.125ms. Pack 76 KB (0.074 MB). See [ADR 0008](../../ejs-docs/adr/0008-content-pack-sqlite-format.md), `content-packs/maths-grade6-caps-fractions-v0.1.pack`.
+- **Completed:** 2026-03-11 | Branch: `feature/p0-004-content-pack`
 - **Depends on:** P0-002 ✅ (embedding model + vector store selected)
 
 ### P0-005: End-to-End Pipeline Smoke Test

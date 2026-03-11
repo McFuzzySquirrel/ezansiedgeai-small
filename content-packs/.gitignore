@@ -1,0 +1,7 @@
+# content-packs/
+
+# .pack files are SQLite build artifacts — commit small prototype packs,
+# but exclude any generated during local development that aren't ready to ship.
+# To include a specific pack: git add -f content-packs/my-pack.pack
+*.pack.tmp
+*.pack.bak
