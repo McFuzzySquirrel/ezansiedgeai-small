@@ -1,0 +1,17 @@
+# P0-005: End-to-End Pipeline dependencies
+# Python >= 3.10
+
+# LLM inference (P0-001)
+llama-cpp-python>=0.3.0
+
+# Embedding + retrieval (P0-002)
+sentence-transformers>=3.0.0
+transformers>=4.40.0
+torch>=2.0.0
+faiss-cpu>=1.8.0
+numpy>=1.24.0
+
+# Utilities
+psutil>=6.0.0
+pyyaml>=6.0
+jinja2>=3.1.0

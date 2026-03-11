@@ -1,0 +1,8 @@
+# Python virtual environment
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Generated artifacts (checked in intentionally via git add -f if needed)
+# reports/ — kept in git as demo recording

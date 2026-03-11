@@ -225,9 +225,25 @@ The original 150 MB budget was set before P0-001 demonstrated that the LLM alone
 
 - **Drops Samsung A04 2 GB from targets** — some learners with the cheapest devices won't be served by V1. Mitigation: edge-device mode (ADR 0004) can serve these learners via school Wi-Fi.
 - **~1.4 GB first-launch download** — significant on mobile data. Mitigation: design for school Wi-Fi sync; show clear progress/resume UI.
-- **Host benchmarks only** — absolute latency numbers will differ on ARM Cortex-A53 class CPUs. Relative rankings and RAM patterns are the primary signal. Android validation needed in P0-005.
+- **Host benchmarks only** — absolute latency numbers will differ on ARM Cortex-A53 class CPUs. Relative rankings and RAM patterns are the primary signal. Android validation moves to P0-104 (see P0-005 Validation below).
 - **100% accuracy is on a 50-chunk test set** — accuracy may degrade with larger, more diverse content. Content pack testing (P0-004) must validate at scale.
 - **FAISS Flat is O(n)** — acceptable for content packs (< 1,000 chunks) but will need revisiting if we move to cross-pack search at larger scale.
+
+### P0-005 Validation (2026-03-11)
+
+P0-005 (`spike/p0-005-e2e-pipeline`) ran the full sequential pipeline on a CPU-only dev machine and confirmed the core constraints predicted in this ADR:
+
+| Constraint (this ADR) | P0-005 Measured Result | Status |
+|---|---|---|
+| Sequential loading — embedding unloads before LLM loads | Embed unloads 49 MB → LLM loads +1,754 MB; confirmed no overlap | ✅ |
+| Query embedding < 500ms | ~10ms CPU | ✅ |
+| FAISS search < 500ms | ~0.05ms | ✅ |
+| Retrieval grounded (not hallucinated) | 5/5 questions: top chunk semantically correct, answers referenced chunk content | ✅ |
+| Total pipeline latency < 15s | 14–20s CPU-only (Quadro M2200 sm_52 incompatible with PyTorch 2.10+); on-device target unvalidated | ⚠️ |
+
+**Sequential loading note:** The `del model; gc.collect()` pattern between embedding and generation phases works as predicted. The RAM profile (embed peak ~864 MB, LLM peak ~2,591 MB, no concurrent overlap) is consistent with the 1,161 MB headroom model.
+
+**Latency note:** The 15s on-device target is not yet validated — the dev machine runs CPU-only due to GPU incompatibility (sm_52). Android hardware validation (GGUF + NNAPI) remains a requirement for P0-104.
 
 ---
 
@@ -252,8 +268,8 @@ The original 150 MB budget was set before P0-001 demonstrated that the LLM alone
 - **Do not** re-embed content at runtime on-device — pre-compute at build time
 - **Do not** use FAISS IVF with < 300 training points — it warns and provides no benefit
 - **Revisit vector store** only if content exceeds ~1,000 chunks per searchable index
-- **Validate on Android** — P0-005 must confirm embedding latency on target emulator (4 GB, ARMv8-A)
-- **LLM and embedding model do not run simultaneously** — the LLM unloads or the embedding model unloads. Peak RAM figures are per-component, not additive.
+- **Validate on Android** — P0-005 confirmed sequential loading and sub-500ms embed/search on CPU. Absolute latency on Android ARMv8-A (GGUF + NNAPI) must be validated in P0-104.
+- **LLM and embedding model do not run simultaneously** — the LLM unloads or the embedding model unloads. Peak RAM figures are per-component, not additive. Confirmed working: `del model; gc.collect()` between embedding and generation phases (P0-005).
 
 ---
 
