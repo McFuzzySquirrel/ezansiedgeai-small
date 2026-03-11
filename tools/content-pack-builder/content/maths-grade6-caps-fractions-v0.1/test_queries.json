@@ -1,0 +1,77 @@
+{
+  "description": "10 test queries for retrieval accuracy validation of the maths-grade6-caps-fractions-v0.1 content pack. Each query simulates a real Grade 6 learner question. Expected chunk IDs are ground-truth top-3 hits against the 10-chunk fractions pack.",
+  "version": "0.1.0",
+  "pack_id": "maths-grade6-caps-fractions-v0.1",
+  "queries": [
+    {
+      "id": "q01",
+      "question": "What is a fraction and what do the top and bottom numbers mean?",
+      "expected_chunk_ids": ["fractions-basics-001", "fractions-basics-002"],
+      "difficulty": "basic",
+      "topic_area": "fractions"
+    },
+    {
+      "id": "q02",
+      "question": "What is the difference between a proper fraction, an improper fraction, and a mixed number?",
+      "expected_chunk_ids": ["fractions-basics-002", "fractions-basics-001"],
+      "difficulty": "basic",
+      "topic_area": "fractions"
+    },
+    {
+      "id": "q03",
+      "question": "How do I make equivalent fractions?",
+      "expected_chunk_ids": ["fractions-equivalent-001", "fractions-simplifying-001"],
+      "difficulty": "basic",
+      "topic_area": "fractions"
+    },
+    {
+      "id": "q04",
+      "question": "How do I simplify 18/24 to its lowest terms using the highest common factor?",
+      "expected_chunk_ids": ["fractions-simplifying-001", "fractions-equivalent-001"],
+      "difficulty": "intermediate",
+      "topic_area": "fractions"
+    },
+    {
+      "id": "q05",
+      "question": "How do I tell which fraction is bigger: 3/4 or 5/6?",
+      "expected_chunk_ids": ["fractions-comparing-001", "fractions-equivalent-001"],
+      "difficulty": "intermediate",
+      "topic_area": "fractions"
+    },
+    {
+      "id": "q06",
+      "question": "How do I add fractions that have the same denominator?",
+      "expected_chunk_ids": ["fractions-addition-001", "fractions-addition-002"],
+      "difficulty": "basic",
+      "topic_area": "fractions"
+    },
+    {
+      "id": "q07",
+      "question": "How do I add 2/5 and 1/3 together when the denominators are different?",
+      "expected_chunk_ids": ["fractions-addition-002", "fractions-addition-001"],
+      "difficulty": "intermediate",
+      "topic_area": "fractions"
+    },
+    {
+      "id": "q08",
+      "question": "How do I subtract fractions when the denominators are different?",
+      "expected_chunk_ids": ["fractions-subtraction-001", "fractions-addition-002"],
+      "difficulty": "intermediate",
+      "topic_area": "fractions"
+    },
+    {
+      "id": "q09",
+      "question": "Thandi has R80 and she spends 3/4 of it. How much money did she spend?",
+      "expected_chunk_ids": ["fractions-word-problems-001", "fractions-word-problems-002"],
+      "difficulty": "intermediate",
+      "topic_area": "fractions"
+    },
+    {
+      "id": "q10",
+      "question": "Sipho has 24 sweets and gives 1/3 to his sister and 1/4 to his brother. How many sweets does he have left?",
+      "expected_chunk_ids": ["fractions-word-problems-002", "fractions-word-problems-001"],
+      "difficulty": "intermediate",
+      "topic_area": "fractions"
+    }
+  ]
+}
