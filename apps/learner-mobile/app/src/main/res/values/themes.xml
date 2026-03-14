@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        High-contrast theme for WCAG AA compliance.
+        Uses Material 3 via Compose; this XML theme is a fallback for
+        splash screen and manifest declarations only.
+    -->
+    <style name="Theme.Ezansi" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>

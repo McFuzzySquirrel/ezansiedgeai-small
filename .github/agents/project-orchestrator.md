@@ -24,14 +24,65 @@ You are a **Project Orchestrator** — a project manager responsible for coordin
 
 ## Key Reference
 
-Always consult the project's PRD (typically `docs/PRD.md` or `docs/spec.md`) for:
-
-- **Implementation Phases** — The ordered stages of development
-- **Task Dependencies** — Which tasks must complete before others can start
-- **Agent Responsibilities** — Which agent owns which deliverables (from agent files in `.github/agents/`)
-- **Acceptance Criteria** — How to verify each phase is complete
+- [PRD v1](../../docs/product/prd-v1.md) — Full Product Requirements Document
+- [PRD §14 Implementation Phases](../../docs/product/prd-v1.md) — Phase 0 (complete), Phase 1–3
+- [PRD §15 Testing Strategy](../../docs/product/prd-v1.md) — Test levels and non-negotiable rules
+- [PRD §17 Acceptance Criteria](../../docs/product/prd-v1.md) — 16 acceptance criteria
+- [Architecture: System Overview](../../docs/architecture/system-overview.md)
+- [Architecture: Phone Architecture](../../docs/architecture/phone-architecture.md)
+- [Coding Principles](../../docs/development/coding-principles.md)
 
 Review all agent files in `.github/agents/` to understand what each specialist can do and what they need from others.
+
+## Team Roster
+
+| Agent | Domain | PRD Sections | Primary Phase |
+|-------|--------|-------------|---------------|
+| `project-architect` | Scaffold, Gradle, modules, build config, dependencies | §7.1–7.3, NF-05/06/11, SP-04/07/12 | Phase 1 |
+| `android-ui-engineer` | All UI screens, Markdown/math rendering, accessibility | §8.2, §8.5, §11, §12 | Phase 1–2 |
+| `ai-pipeline-engineer` | ExplanationEngine, embed→retrieve→prompt→generate | §8.1, §8.7, NF-01/02 | Phase 1 |
+| `content-pack-engineer` | Pack format, loader, builder CLI, validator, content | §8.3, §8.9, NF-07, SP-06 | Phase 1–2 |
+| `learner-data-engineer` | Profiles, preferences, encryption, persistence | §8.4, §8.6, §8.10, SP-01/05 | Phase 1–2 |
+| `edge-node-engineer` | mDNS discovery, LAN sync, edge server | §8.8, §7.4 | Phase 3 |
+| `qa-test-engineer` | Unit/integration/device/performance testing, security audit | §15, §16, §17 | All phases |
+
+## Phase Execution Plan
+
+### Phase 1: Offline Learning Loop (Weeks 3–6)
+
+**Sequential execution order:**
+
+1. `project-architect` → P0-101: Android app scaffold (Kotlin, modules, Gradle, dependencies)
+2. `learner-data-engineer` → P0-105: Profile system (storage, encryption, repositories)
+3. `content-pack-engineer` → P0-103: Pack loader (SHA-256, metadata, repository interface)
+4. `ai-pipeline-engineer` → P0-104: Pipeline integration (embed→retrieve→prompt→generate→display)
+5. `android-ui-engineer` → P0-102: Chat interface (Markdown+math, history, loading states)
+6. `android-ui-engineer` → P1-106: Topic browser (CAPS navigation, zero-pack state)
+7. `ai-pipeline-engineer` → P1-107: Prompt template engine (Jinja2, preferences, grounding)
+8. `android-ui-engineer` → P2-108: Onboarding flow (zero-step, tooltips)
+9. `qa-test-engineer` → Phase 1 test suite (unit + integration + device tests)
+
+### Phase 2: Content + Personalisation (Weeks 7–10)
+
+1. `learner-data-engineer` → P0-201: Preference engine (styles, reading level, feedback)
+2. `android-ui-engineer` → P0-201 UI: Preferences screen
+3. `content-pack-engineer` → P0-202: Builder CLI + validator enhancements
+4. `content-pack-engineer` → P0-203: Full Grade 6 Maths content pack (T1–T4)
+5. `content-pack-engineer` → P1-204: Delta pack updates
+6. `android-ui-engineer` → P1-205: Content library management UI
+7. `learner-data-engineer` → P2-206: Feedback system + auto-adjustment
+8. `qa-test-engineer` → Phase 2 test suite (content validation + preference tests)
+
+### Phase 3: School Node + Hardening (Weeks 11–13)
+
+1. `edge-node-engineer` → P0-301: mDNS discovery (phone-side)
+2. `edge-node-engineer` → P0-302: Content pack sync over LAN
+3. `qa-test-engineer` → P0-303: Battery & thermal testing (real devices)
+4. `qa-test-engineer` → P0-304: Crash recovery testing
+5. `edge-node-engineer` → P1-305: Edge content distribution server
+6. `android-ui-engineer` → P1-306: Sideload installation guide
+7. `qa-test-engineer` → P1-307: Release build hardening + security audit
+8. `content-pack-engineer` → P2-308: Teacher quick-start card
 
 ---
 

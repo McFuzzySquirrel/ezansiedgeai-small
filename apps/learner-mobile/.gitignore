@@ -1,0 +1,28 @@
+# Build outputs
+build/
+.gradle/
+*.apk
+*.aab
+*.ap_
+
+# Local configuration
+local.properties
+*.jks
+*.keystore
+signing.properties
+
+# IDE files
+.idea/
+*.iml
+.DS_Store
+captures/
+
+# Model files (downloaded separately, not committed)
+*.gguf
+*.onnx
+*.bin
+*.pack
+
+# Logs
+*.log
+*.hprof
