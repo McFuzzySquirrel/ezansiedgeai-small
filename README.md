@@ -76,7 +76,7 @@ Validated through Phase 0 spikes on target hardware:
 | Content packs | SQLite `.pack` with embedded FAISS index | ≤ 200 MB | SHA-256 verified, pre-computed 384-dim embeddings |
 
 > [!TIP]
-> See the ADRs for full decision rationale: [ADR 0006](ejs-docs/adr/0006-qwen25-1.5b-as-on-device-llm.md) · [ADR 0007](ejs-docs/adr/0007-embedding-model-vector-store-storage-budget.md) · [ADR 0008](ejs-docs/adr/0008-content-pack-sqlite-format.md)
+> See the ADRs for full decision rationale: [ADR 0006](ejs-docs/adr/0006-qwen25-1.5b-as-on-device-llm.md) · [ADR 0007](ejs-docs/adr/0007-embedding-model-vector-store-storage-budget.md) · [ADR 0008](ejs-docs/adr/0008-content-pack-sqlite-format.md) · [ADR 0009](ejs-docs/adr/0009-manual-dependency-injection.md) · [ADR 0010](ejs-docs/adr/0010-aes256gcm-profile-encryption.md) · [ADR 0011](ejs-docs/adr/0011-jinja2-style-template-engine.md)
 
 ### System Topology
 
@@ -235,7 +235,7 @@ Peak RAM: ~554 MB working set on 4 GB devices. Models are loaded sequentially, n
 │   ├── development/             Coding principles, V1 backlog
 │   └── product/                 PRD, constraints, personas, success metrics
 ├── ejs-docs/
-│   ├── adr/                     Architecture Decision Records (ADR 0001–0008)
+│   ├── adr/                     Architecture Decision Records (ADR 0001–0011)
 │   └── journey/                 Engineering Journey System session logs
 ├── models/
 │   ├── edge-models/             Model assets for the school edge node
@@ -257,6 +257,9 @@ Key decisions are documented as Architecture Decision Records:
 | [0006](ejs-docs/adr/0006-qwen25-1.5b-as-on-device-llm.md) | Qwen2.5-1.5B as on-device LLM |
 | [0007](ejs-docs/adr/0007-embedding-model-vector-store-storage-budget.md) | all-MiniLM-L6-v2 + FAISS for embedding and retrieval |
 | [0008](ejs-docs/adr/0008-content-pack-sqlite-format.md) | SQLite `.pack` format with embedded FAISS index |
+| [0009](ejs-docs/adr/0009-manual-dependency-injection.md) | Manual DI via AppContainer over Hilt/Koin |
+| [0010](ejs-docs/adr/0010-aes256gcm-profile-encryption.md) | AES-256-GCM with Android Keystore for learner data |
+| [0011](ejs-docs/adr/0011-jinja2-style-template-engine.md) | Custom Jinja2-style prompt template engine |
 
 See the full [ADR index](ejs-docs/adr/) for all decisions.
 
