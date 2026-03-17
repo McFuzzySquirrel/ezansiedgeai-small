@@ -98,6 +98,18 @@ class PromptBuilder(
          * BPE tokeniser. Slightly overestimates, giving us a safety margin.
          */
         private const val WORDS_TO_TOKENS_FACTOR = 1.3
+
+        /** Minimum token count for a chunk to be worth including truncated. */
+        private const val MINIMUM_USEFUL_CHUNK_TOKENS = 30
+
+        /** Minimum words for a truncated chunk to be meaningful. */
+        private const val MINIMUM_USEFUL_WORDS = 10
+
+        /** Pattern for splitting text into words. */
+        private val WHITESPACE_PATTERN = Regex("\\s+")
+
+        /** Pattern for collapsing excessive newline sequences. */
+        private val EXCESSIVE_NEWLINES_PATTERN = Regex("\n{3,}")
     }
 
     /**
@@ -401,17 +413,4 @@ class PromptBuilder(
             .trim()
     }
 
-    companion object InternalConstants {
-        /** Minimum token count for a chunk to be worth including truncated. */
-        private const val MINIMUM_USEFUL_CHUNK_TOKENS = 30
-
-        /** Minimum words for a truncated chunk to be meaningful. */
-        private const val MINIMUM_USEFUL_WORDS = 10
-
-        /** Pattern for splitting text into words. */
-        private val WHITESPACE_PATTERN = Regex("\\s+")
-
-        /** Pattern for collapsing excessive newline sequences. */
-        private val EXCESSIVE_NEWLINES_PATTERN = Regex("\n{3,}")
-    }
 }
