@@ -123,6 +123,20 @@ cd ezansiedgeai-small/apps/learner-mobile
 > [!IMPORTANT]
 > The app compiles and runs with mock AI implementations out of the box. Native model files (GGUF/ONNX) are not included in the repository — see [models/phone-models/](models/phone-models/) for download instructions.
 
+### Install on a Phone
+
+The debug APK is sideloadable — no Play Store needed:
+
+```bash
+# Via ADB (USB or wireless)
+adb install app/build/outputs/apk/debug/ezansi-v0.1.0-debug.apk
+
+# Or copy the APK to the phone and tap to install
+# (enable "Install from unknown sources" in Android settings)
+```
+
+The debug APK (~128 MB) includes ONNX Runtime native libraries. The app launches with **mock AI** — all screens are functional (chat, topics, profiles, preferences, library, onboarding) but responses are placeholders until real model files are loaded on the device. See [models/phone-models/](models/phone-models/) for model download instructions.
+
 ### Run Tests
 
 ```bash
