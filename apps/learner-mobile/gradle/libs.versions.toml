@@ -31,8 +31,8 @@ compose-test = "1.7.6"
 # llama.cpp Android — TODO: Add when stable release available
 # llama-android = "0.1.0"
 
-# ONNX Runtime Android — TODO: Add when wiring AI pipeline
-# onnxruntime = "1.19.0"
+# ONNX Runtime Android — for on-device embedding model inference
+onnxruntime = "1.19.0"
 
 [libraries]
 # AndroidX Core
@@ -58,6 +58,7 @@ compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 
 # Kotlin Coroutines
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -76,11 +77,11 @@ androidx-test-core = { group = "androidx.test", name = "core", version.ref = "an
 androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidx-test-runner" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }
 
-# llama.cpp Android bindings — TODO: uncomment when wiring inference
+# llama.cpp Android bindings — TODO: uncomment when stable Maven artifact available
 # llama-android = { group = "com.example.llama", name = "llama-android", version.ref = "llama-android" }
 
-# ONNX Runtime Android — TODO: uncomment when wiring embedding model
-# onnxruntime-android = { group = "com.microsoft.onnxruntime", name = "onnxruntime-android", version.ref = "onnxruntime" }
+# ONNX Runtime Android — on-device embedding model inference (all-MiniLM-L6-v2)
+onnxruntime-android = { group = "com.microsoft.onnxruntime", name = "onnxruntime-android", version.ref = "onnxruntime" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

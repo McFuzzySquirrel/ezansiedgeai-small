@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Chat feature strings — all UI text externalised for localisation.
+  Grade 4 reading level: short words, simple sentences.
+-->
+<resources>
+    <!-- Top bar -->
+    <string name="chat_title">eZansiEdgeAI</string>
+    <string name="chat_clear_history">Clear chat</string>
+    <string name="chat_clear_description">Clear chat history</string>
+
+    <!-- Input bar -->
+    <string name="chat_input_hint">Ask a question\u2026</string>
+    <string name="chat_send_description">Send message</string>
+
+    <!-- Empty state -->
+    <string name="chat_empty_title">Welcome!</string>
+    <string name="chat_empty_subtitle">Ask me anything about your schoolwork.</string>
+    <string name="chat_empty_try">Try asking:</string>
+    <string name="chat_example_1">What are fractions?</string>
+    <string name="chat_example_2">How do I add fractions with different denominators?</string>
+    <string name="chat_example_3">Explain data handling for Grade 6</string>
+
+    <!-- Pipeline loading states -->
+    <string name="chat_thinking">Thinking\u2026</string>
+    <string name="chat_retrieving">Finding content\u2026</string>
+    <string name="chat_generating">Writing answer\u2026</string>
+    <string name="chat_elapsed">%d seconds</string>
+
+    <!-- Actions -->
+    <string name="chat_copy_description">Copy answer</string>
+    <string name="chat_copied">Copied!</string>
+    <string name="chat_retry">Try again</string>
+
+    <!-- Error states -->
+    <string name="chat_error_generic">Something went wrong. Please try again.</string>
+    <string name="chat_dismiss_error">Dismiss error</string>
+
+    <!-- No content packs -->
+    <string name="chat_no_packs">No content packs installed. Install a content pack to start learning.</string>
+
+    <!-- Accessibility -->
+    <string name="chat_question_label">Your question: %s</string>
+    <string name="chat_answer_label">Answer: %s</string>
+    <string name="chat_source_label">Source: %s</string>
+    <string name="chat_sources_label">Sources used for this answer</string>
+    <string name="chat_loading_label">Loading: %s</string>
+    <string name="chat_copy_button">Copy</string>
+    <string name="chat_timeout">This is taking longer than expected. Please wait\u2026</string>
+
+    <!-- Onboarding tooltips (P2-108) — zero-step, all dismissible -->
+    <string name="onboarding_welcome_message">Welcome to eZansiEdgeAI! 🎓 Ask any Grade 6 Maths question below, or tap Topics to explore the curriculum.</string>
+    <string name="onboarding_welcome_description">Welcome message with tips on how to get started</string>
+    <string name="onboarding_got_it">Got it</string>
+    <string name="onboarding_dismiss_tip">Dismiss this tip</string>
+    <string name="onboarding_topics_hint">Tap Topics to explore more curriculum content.</string>
+    <string name="onboarding_topics_screen_hint">Tap any topic to see suggested questions.</string>
+    <string name="onboarding_profile_hint">Create a profile to save your preferences.</string>
+</resources>

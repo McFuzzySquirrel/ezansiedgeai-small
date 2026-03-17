@@ -29,6 +29,7 @@ dependencies {
     testImplementation(libs.junit5.api)
     testRuntimeOnly(libs.junit5.engine)
     testImplementation(libs.kotlin.test)
+    testImplementation(libs.kotlinx.coroutines.test)
 }
 
 tasks.withType<Test> {

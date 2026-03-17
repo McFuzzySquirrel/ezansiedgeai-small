@@ -20,6 +20,10 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
@@ -31,15 +35,20 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
 
     // TODO: Add llama.cpp Android bindings for LLM inference
+    // No stable Maven artifact yet — will require local .aar or JitPack build.
     // implementation(libs.llama.android)
 
-    // TODO: Add ONNX Runtime Android for embedding model inference
-    // implementation(libs.onnxruntime.android)
+    // ONNX Runtime Android for embedding model inference (all-MiniLM-L6-v2).
+    // The OnnxEmbeddingModel uses reflection to load ONNX classes so the app
+    // compiles and runs with MockEmbeddingModel even if this is commented out.
+    implementation(libs.onnxruntime.android)
 
     testImplementation(libs.junit5.api)
     testRuntimeOnly(libs.junit5.engine)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
 }
 
 tasks.withType<Test> {
