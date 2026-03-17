@@ -5,7 +5,7 @@
         Uses Material 3 via Compose; this XML theme is a fallback for
         splash screen and manifest declarations only.
     -->
-    <style name="Theme.Ezansi" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.Ezansi" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
