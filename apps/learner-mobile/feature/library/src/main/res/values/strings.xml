@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Library feature strings — all UI text externalised for localisation.
+  Grade 4 reading level: short words, simple sentences.
+-->
+<resources>
+    <!-- Screen title -->
+    <string name="library_title">Content Library</string>
+
+    <!-- Empty state (CP-09) -->
+    <string name="library_empty_title">No content packs yet</string>
+    <string name="library_empty_message">Ask your teacher for a content pack to start learning.</string>
+
+    <!-- Pack card details -->
+    <string name="library_pack_subtitle">%1$s \u2022 Grade %2$s</string>
+    <string name="library_version_label">Version</string>
+    <string name="library_chunks_label">Lessons</string>
+    <string name="library_size_label">Size</string>
+
+    <!-- Delete pack -->
+    <string name="library_delete_pack">Delete %s</string>
+    <string name="library_delete_title">Delete this content pack?</string>
+    <string name="library_delete_message">This will remove %s and free up storage. You can get it again from your teacher.</string>
+    <string name="library_delete_confirm">Delete</string>
+    <string name="library_delete_cancel">Keep</string>
+
+    <!-- Storage info -->
+    <string name="library_storage_available">%s free on this device</string>
+
+    <!-- Accessibility -->
+    <string name="library_loading">Loading content library</string>
+    <string name="library_pack_label">Content pack: %1$s, version %2$s, %3$s Grade %4$s</string>
+</resources>

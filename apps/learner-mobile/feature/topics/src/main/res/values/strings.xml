@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Topics feature strings — all UI text externalised for localisation.
+  Grade 4 reading level: short words, simple sentences.
+-->
+<resources>
+    <!-- Screen title -->
+    <string name="topics_title">Topics</string>
+
+    <!-- Breadcrumb -->
+    <string name="topics_breadcrumb_home">Home</string>
+    <string name="topics_breadcrumb_separator">/</string>
+
+    <!-- Topic cards -->
+    <string name="topics_chunk_count">%d lessons</string>
+    <string name="topics_chunk_count_one">1 lesson</string>
+    <string name="topics_explore">Tap to explore</string>
+    <string name="topics_has_children">Tap to open</string>
+
+    <!-- Suggested questions -->
+    <string name="topics_questions_title">Questions you can ask</string>
+    <string name="topics_ask_question">Ask this question</string>
+    <string name="topics_back_to_topics">Back to topics</string>
+
+    <!-- Zero-pack empty state (CP-09) -->
+    <string name="topics_no_packs_title">No topics yet</string>
+    <string name="topics_no_packs_message">Ask your teacher for a content pack or check the Library.</string>
+    <string name="topics_go_to_library">Go to Library</string>
+
+    <!-- Loading -->
+    <string name="topics_loading">Loading topics\u2026</string>
+
+    <!-- Error state -->
+    <string name="topics_error_title">Something went wrong</string>
+    <string name="topics_retry">Try again</string>
+
+    <!-- Accessibility -->
+    <string name="topics_card_label">Topic: %1$s, %2$d lessons</string>
+    <string name="topics_card_branch_label">Topic group: %1$s, %2$d lessons. Tap to open.</string>
+    <string name="topics_breadcrumb_label">You are here: %s</string>
+    <string name="topics_navigate_back">Go back one level</string>
+    <string name="topics_question_label">Question: %s. Tap to ask.</string>
+    <string name="topics_selected_topic">Selected topic: %s</string>
+</resources>

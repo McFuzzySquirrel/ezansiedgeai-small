@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Profiles feature strings — all UI text externalised for localisation.
+  Grade 4 reading level: short words, simple sentences.
+-->
+<resources>
+    <!-- Screen title -->
+    <string name="profiles_title">Who\'s learning today?</string>
+    <string name="profiles_preferences_button">Open settings</string>
+
+    <!-- Profile cards -->
+    <string name="profiles_last_active">Last used: %s</string>
+    <string name="profiles_active_indicator">Active profile</string>
+    <string name="profiles_card_label">Profile: %1$s, last used %2$s. Tap to switch.</string>
+    <string name="profiles_card_active_label">Active profile: %1$s, last used %2$s.</string>
+
+    <!-- Empty state -->
+    <string name="profiles_empty_title">No profiles yet</string>
+    <string name="profiles_empty_message">Create a profile to save your learning progress.</string>
+    <string name="profiles_create_first">Create your profile</string>
+
+    <!-- Add profile -->
+    <string name="profiles_name_hint">Your name</string>
+    <string name="profiles_add_button">Add</string>
+    <string name="profiles_add_description">Add a new profile</string>
+
+    <!-- Delete confirmation (only modal in the app) -->
+    <string name="profiles_delete_title">Delete this profile?</string>
+    <string name="profiles_delete_message">This will delete %s and all their learning data. You cannot undo this.</string>
+    <string name="profiles_delete_confirm">Delete</string>
+    <string name="profiles_delete_cancel">Keep</string>
+
+    <!-- Accessibility -->
+    <string name="profiles_loading">Loading profiles</string>
+</resources>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Preferences feature strings — all UI text externalised for localisation.
+  Grade 4 reading level: short words, simple sentences.
+-->
+<resources>
+    <!-- Screen title -->
+    <string name="preferences_title">Learning Preferences</string>
+    <string name="preferences_for_profile">Settings for %s</string>
+    <string name="preferences_no_profile">Create a profile first to set your preferences.</string>
+
+    <!-- Explanation Style (PE-01) -->
+    <string name="preferences_explanation_style_title">How should I explain things?</string>
+    <string name="preferences_explanation_style_description">Pick the way you like to learn best.</string>
+
+    <string name="preferences_style_step_by_step">Step by step</string>
+    <string name="preferences_style_step_by_step_desc">I break the answer into small, numbered steps.</string>
+    <string name="preferences_style_visual">Visual</string>
+    <string name="preferences_style_visual_desc">I use pictures, diagrams, and examples you can see.</string>
+    <string name="preferences_style_simple">Simple</string>
+    <string name="preferences_style_simple_desc">I keep it short and easy to read.</string>
+    <string name="preferences_style_detailed">Detailed</string>
+    <string name="preferences_style_detailed_desc">I give a full answer with extra info.</string>
+
+    <!-- Reading Level (PE-03) -->
+    <string name="preferences_reading_level_title">How hard should the words be?</string>
+    <string name="preferences_reading_level_description">Pick the reading level that fits you.</string>
+
+    <string name="preferences_level_simple">Simple</string>
+    <string name="preferences_level_simple_desc">Short words and easy sentences.</string>
+    <string name="preferences_level_standard">Standard</string>
+    <string name="preferences_level_standard_desc">Normal words for your grade level.</string>
+    <string name="preferences_level_advanced">Advanced</string>
+    <string name="preferences_level_advanced_desc">Bigger words and more detail.</string>
+
+    <!-- Example Type (PE-02) -->
+    <string name="preferences_example_type_title">What kind of examples?</string>
+    <string name="preferences_example_type_description">Pick the type of examples that help you most.</string>
+
+    <string name="preferences_example_everyday">Everyday</string>
+    <string name="preferences_example_everyday_desc">Examples from daily life, like sharing sweets or shopping.</string>
+    <string name="preferences_example_abstract">Abstract</string>
+    <string name="preferences_example_abstract_desc">Examples using numbers and shapes, like in a textbook.</string>
+    <string name="preferences_example_visual">Visual</string>
+    <string name="preferences_example_visual_desc">Examples with pictures, number lines, and diagrams.</string>
+
+    <!-- Accessibility -->
+    <string name="preferences_loading">Loading preferences</string>
+</resources>
