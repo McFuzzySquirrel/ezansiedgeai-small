@@ -83,8 +83,9 @@ After launch, verify these behaviors:
 
 Expected behavior in current setup:
 
-- Mock AI implementations are used by default.
-- You can test UI and flow without GGUF/ONNX model files.
+- The app attempts real runtime paths by default (`OnnxEmbeddingModel` and `LlamaCppEngine`).
+- If ONNX session setup fails or the model file is missing, embedding degrades to deterministic fallback vectors.
+- If llama native bindings are unavailable, chat returns an explicit runtime-unavailable message.
 
 ## 7) Load a Content Pack into the Emulator
 
@@ -111,7 +112,7 @@ Expected result:
 
 1. Library shows the installed pack.
 2. Topics shows non-empty curriculum content.
-3. Chat still uses mock generation on this branch unless native AI integrations are switched on.
+3. Chat runtime status logs indicate either ONNX real/fallback mode and llama native availability status.
 
 Fallback if `cp` fails in `run-as` shell:
 
@@ -128,8 +129,9 @@ Expected filenames in the app code:
 
 Current limitation on this branch:
 
-1. The app still wires `MockLlmEngine` and `MockEmbeddingModel` by default.
-2. Staging the files is useful for storage/path verification, but it does not yet enable real inference by itself.
+1. `LlamaCppEngine` is wired by default, but native llama bindings are still not integrated, so generation reports native-unavailable.
+2. `OnnxEmbeddingModel` is wired by default; if ONNX cannot initialise, embedding falls back deterministically.
+3. Staging files remains required for storage/path verification and future native integration testing.
 
 Model download guidance:
 
@@ -189,10 +191,10 @@ From apps/learner-mobile:
 - Relaunch the app after copying the file.
 - Check exact filename ends with `.pack`.
 
-### GGUF or ONNX files are present but chat still uses placeholder AI
+### GGUF or ONNX files are present but chat still reports runtime-unavailable
 
-- This is expected on the current branch.
-- The app still uses `MockLlmEngine` and `MockEmbeddingModel` in `AppContainer` until native integrations are enabled.
+- This is expected while llama native bindings are not yet integrated.
+- Check logcat for `ExplanationEngine` runtime status messages to confirm ONNX mode and llama native status.
 
 ## 11) Suggested Collaboration Workflow
 
