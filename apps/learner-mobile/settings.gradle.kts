@@ -28,6 +28,7 @@ include(":app")
 include(":core:common")
 include(":core:ai")
 include(":core:data")
+include(":core:llama")
 
 // Feature modules
 include(":feature:chat")

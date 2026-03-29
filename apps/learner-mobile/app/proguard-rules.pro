@@ -17,9 +17,9 @@
 # Kotlin metadata (required for reflection-based DI if used)
 -keep class kotlin.Metadata { *; }
 
-# TODO: Add llama.cpp JNI keep rules when native library is integrated
-# -keep class com.example.llama.** { *; }
-# -keepclasseswithmembernames class * { native <methods>; }
+# llama.cpp JNI keep rules (core:llama native bridge)
+-keep class com.ezansi.app.core.llama.LlamaAndroid { *; }
+-keepclasseswithmembernames class * { native <methods>; }
 
 # TODO: Add ONNX Runtime keep rules when embedding model is integrated
 # -keep class ai.onnxruntime.** { *; }

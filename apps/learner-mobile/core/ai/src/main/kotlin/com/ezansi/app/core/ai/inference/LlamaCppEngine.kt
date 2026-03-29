@@ -1,22 +1,16 @@
 package com.ezansi.app.core.ai.inference
 
 import android.util.Log
+import com.ezansi.app.core.llama.LlamaAndroid
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 /**
  * llama.cpp-based LLM engine for on-device Qwen2.5-1.5B inference.
  *
- * This class wraps the llama.cpp Android bindings (llama-android) to run
- * the Qwen2.5-1.5B-Instruct Q4_K_M GGUF model on-device via CPU (ARM NEON).
- *
- * ## Current Status
- *
- * The llama-android dependency is not yet available as a stable Maven artifact.
- * This class defines the complete interface contract and JNI method signatures
- * but cannot perform real inference until the native library is integrated.
- * When the native library is not available, [loadModel] sets a flag and
- * [generate] produces an error message directing developers to the integration steps.
+ * Uses the [LlamaAndroid] JNI wrapper to run the Qwen2.5-1.5B-Instruct
+ * Q4_K_M GGUF model on-device via CPU (ARM NEON on real devices,
+ * x86_64 on emulator).
  *
  * ## Model Details
  *
@@ -27,15 +21,13 @@ import kotlinx.coroutines.flow.flow
  * - Temperature: 0.3 (low randomness for factual explanations)
  * - mmap: enabled for memory-efficient loading
  *
- * ## JNI Integration Plan
+ * ## Inference Flow
  *
- * When llama.cpp Android bindings are available:
- * 1. Call `llama_model_load(path, params)` to load the GGUF model
- * 2. Create a context with `llama_new_context(model, ctx_params)`
- * 3. Tokenise the prompt with `llama_tokenize()`
- * 4. Run inference loop: `llama_decode()` → `llama_sampling_sample()`
- * 5. Detokenise each token and emit via the Flow
- * 6. Stop on EOS token, max_tokens, or 30-second timeout
+ * 1. Load GGUF model via `llama_model_load_from_file()` with mmap
+ * 2. Create context with 2048-token window
+ * 3. Tokenize prompt → batch decode (prompt eval)
+ * 4. Generation loop: sample → detokenize → emit → decode single
+ * 5. Stop on EOG token, max_tokens, or 30-second timeout
  *
  * @see MockLlmEngine for development/testing without native libraries
  */
@@ -47,33 +39,37 @@ class LlamaCppEngine : LlmEngine {
         /** Qwen2.5 context window size in tokens. */
         private const val CONTEXT_SIZE = 2048
 
+        /** CPU threads for inference (single-token generation). */
+        private const val N_THREADS = 4
+
         /** Low temperature for factual, grounded explanations. */
         private const val TEMPERATURE = 0.3f
+
+        /** Top-p (nucleus) sampling threshold. */
+        private const val TOP_P = 0.9f
+
+        /** Top-k sampling limit. */
+        private const val TOP_K = 40
 
         /** Wall-time cap for the generation phase (AI-09). */
         private const val GENERATION_TIMEOUT_MS = 30_000L
     }
 
-    // Native model handle — will be a Long pointer when JNI is integrated
+    private val llama = LlamaAndroid()
     private var modelHandle: Long = 0L
     private var contextHandle: Long = 0L
+    private var samplerHandle: Long = 0L
     private var modelLoaded = false
     private var nativeLibAvailable = false
 
     init {
-        // Attempt to load the llama.cpp native library
-        nativeLibAvailable = try {
-            System.loadLibrary("llama")
-            Log.i(TAG, "llama.cpp native library loaded successfully")
-            true
-        } catch (e: UnsatisfiedLinkError) {
+        nativeLibAvailable = LlamaAndroid.isAvailable()
+        if (!nativeLibAvailable) {
             Log.w(
                 TAG,
-                "llama.cpp native library not available. LLM inference " +
-                    "requires the llama-android dependency. Using MockLlmEngine " +
-                    "for development.",
+                "llama-jni native library not available. " +
+                    "LLM inference disabled — using MockLlmEngine for development.",
             )
-            false
         }
     }
 
@@ -86,21 +82,35 @@ class LlamaCppEngine : LlmEngine {
         Log.i(TAG, "Loading LLM model from: $modelPath")
 
         if (!nativeLibAvailable) {
-            Log.w(
-                TAG,
-                "llama.cpp native library not available — model load is a no-op. " +
-                    "Use MockLlmEngine for development until llama-android is integrated.",
-            )
+            Log.w(TAG, "Native library not available — model load is a no-op")
             modelLoaded = true
             return
         }
 
         try {
-            // TODO(ai-pipeline-engineer): Implement native model loading
-            // modelHandle = nativeLoadModel(modelPath, CONTEXT_SIZE, true /* mmap */)
-            // contextHandle = nativeCreateContext(modelHandle, CONTEXT_SIZE)
+            modelHandle = llama.nativeLoadModel(modelPath, CONTEXT_SIZE, true)
+            if (modelHandle == 0L) {
+                throw IllegalStateException("nativeLoadModel returned null handle")
+            }
+
+            contextHandle = llama.nativeCreateContext(modelHandle, CONTEXT_SIZE, N_THREADS)
+            if (contextHandle == 0L) {
+                llama.nativeFreeModel(modelHandle)
+                modelHandle = 0L
+                throw IllegalStateException("nativeCreateContext returned null handle")
+            }
+
+            samplerHandle = llama.nativeCreateSampler(TEMPERATURE, TOP_P, TOP_K)
+            if (samplerHandle == 0L) {
+                llama.nativeFreeContext(contextHandle)
+                llama.nativeFreeModel(modelHandle)
+                contextHandle = 0L
+                modelHandle = 0L
+                throw IllegalStateException("nativeCreateSampler returned null handle")
+            }
+
             modelLoaded = true
-            Log.i(TAG, "LLM model loaded successfully")
+            Log.i(TAG, "LLM model loaded and context created successfully")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to load LLM model", e)
             throw IllegalStateException(
@@ -118,7 +128,6 @@ class LlamaCppEngine : LlmEngine {
         }
 
         if (!nativeLibAvailable) {
-            // No native library — emit an informative placeholder
             Log.w(TAG, "Llama native unavailable path active during generation")
             emit(
                 "The LLM model requires llama.cpp native bindings to generate " +
@@ -128,44 +137,90 @@ class LlamaCppEngine : LlmEngine {
             return@flow
         }
 
-        // TODO(ai-pipeline-engineer): Implement native inference loop:
-        //
-        // val startTimeMs = System.currentTimeMillis()
-        // val tokenIds = nativeTokenize(contextHandle, prompt)
-        // nativeEval(contextHandle, tokenIds)
-        //
-        // var tokensGenerated = 0
-        // while (tokensGenerated < maxTokens) {
-        //     // Check wall-time cap (AI-09)
-        //     if (System.currentTimeMillis() - startTimeMs > GENERATION_TIMEOUT_MS) {
-        //         Log.w(TAG, "Generation timeout after ${GENERATION_TIMEOUT_MS}ms")
-        //         break
-        //     }
-        //
-        //     val tokenId = nativeSample(contextHandle, TEMPERATURE)
-        //     if (nativeIsEos(contextHandle, tokenId)) break
-        //
-        //     val tokenText = nativeDetokenize(contextHandle, tokenId)
-        //     emit(tokenText)
-        //
-        //     nativeEval(contextHandle, intArrayOf(tokenId))
-        //     tokensGenerated++
-        // }
+        val startTimeMs = System.currentTimeMillis()
 
-        emit("[LlamaCppEngine: Native inference not yet connected]")
+        // Tokenize prompt
+        val tokens = llama.nativeTokenize(modelHandle, prompt, true)
+        if (tokens == null || tokens.isEmpty()) {
+            Log.e(TAG, "Tokenization failed or produced empty result")
+            emit("[Error: Failed to tokenize prompt]")
+            return@flow
+        }
+        Log.i(TAG, "Prompt tokenized: ${tokens.size} tokens")
+
+        // Prompt evaluation (batch decode)
+        val decodeResult = llama.nativeDecode(contextHandle, tokens)
+        if (decodeResult != 0) {
+            Log.e(TAG, "Prompt decode failed: $decodeResult")
+            emit("[Error: Prompt evaluation failed]")
+            return@flow
+        }
+
+        val promptTimeMs = System.currentTimeMillis() - startTimeMs
+        Log.i(TAG, "Prompt eval completed in ${promptTimeMs}ms")
+
+        // Generation loop: sample → detokenize → emit → decode single
+        val generationStartMs = System.currentTimeMillis()
+        var tokensGenerated = 0
+
+        while (tokensGenerated < maxTokens) {
+            // Wall-time cap (AI-09)
+            val elapsed = System.currentTimeMillis() - generationStartMs
+            if (elapsed > GENERATION_TIMEOUT_MS) {
+                Log.w(TAG, "Generation timeout after ${elapsed}ms ($tokensGenerated tokens)")
+                break
+            }
+
+            // Sample next token
+            val tokenId = llama.nativeSample(samplerHandle, contextHandle)
+
+            // Check end-of-generation
+            if (llama.nativeIsEog(modelHandle, tokenId)) {
+                Log.i(TAG, "EOG token reached after $tokensGenerated tokens")
+                break
+            }
+
+            // Detokenize and emit
+            val tokenText = llama.nativeDetokenize(modelHandle, tokenId)
+            emit(tokenText)
+            tokensGenerated++
+
+            // Feed the sampled token back for next decode
+            val singleResult = llama.nativeDecodeSingle(contextHandle, tokenId)
+            if (singleResult != 0) {
+                Log.e(TAG, "Single-token decode failed: $singleResult")
+                break
+            }
+        }
+
+        val totalMs = System.currentTimeMillis() - startTimeMs
+        val genMs = System.currentTimeMillis() - generationStartMs
+        val tokPerSec = if (genMs > 0) tokensGenerated * 1000.0 / genMs else 0.0
+        Log.i(
+            TAG,
+            "Generation complete: $tokensGenerated tokens in ${totalMs}ms " +
+                "(prompt=${promptTimeMs}ms, gen=${genMs}ms, %.1f tok/s)".format(tokPerSec),
+        )
     }
 
     override fun unload() {
         if (!modelLoaded) return
 
         try {
-            if (nativeLibAvailable && contextHandle != 0L) {
-                // TODO(ai-pipeline-engineer): Free native resources
-                // nativeFreeContext(contextHandle)
-                // nativeFreeModel(modelHandle)
+            if (nativeLibAvailable) {
+                if (samplerHandle != 0L) {
+                    llama.nativeFreeSampler(samplerHandle)
+                    samplerHandle = 0L
+                }
+                if (contextHandle != 0L) {
+                    llama.nativeFreeContext(contextHandle)
+                    contextHandle = 0L
+                }
+                if (modelHandle != 0L) {
+                    llama.nativeFreeModel(modelHandle)
+                    modelHandle = 0L
+                }
             }
-            contextHandle = 0L
-            modelHandle = 0L
             modelLoaded = false
             Log.i(TAG, "LLM model unloaded — RAM freed")
         } catch (e: Exception) {
@@ -181,17 +236,4 @@ class LlamaCppEngine : LlmEngine {
             LlmRuntimeMode.NATIVE_UNAVAILABLE
         }
     }
-
-    // ── JNI method declarations ─────────────────────────────────────
-    // These will be linked when the llama-android native library is available.
-
-    // private external fun nativeLoadModel(path: String, contextSize: Int, useMmap: Boolean): Long
-    // private external fun nativeCreateContext(modelHandle: Long, contextSize: Int): Long
-    // private external fun nativeFreeModel(modelHandle: Long)
-    // private external fun nativeFreeContext(contextHandle: Long)
-    // private external fun nativeTokenize(contextHandle: Long, text: String): IntArray
-    // private external fun nativeEval(contextHandle: Long, tokens: IntArray)
-    // private external fun nativeSample(contextHandle: Long, temperature: Float): Int
-    // private external fun nativeDetokenize(contextHandle: Long, tokenId: Int): String
-    // private external fun nativeIsEos(contextHandle: Long, tokenId: Int): Boolean
 }
