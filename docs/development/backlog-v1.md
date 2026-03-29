@@ -209,22 +209,34 @@ Each phase builds on the previous one. Do not start Phase N+1 work until Phase N
 ### P0-202: Content Pack Builder — CLI Tool
 
 - **Description:** Python CLI tool that takes authored Markdown content, validates it against the pack schema, computes embeddings, generates the manifest, and outputs a distributable pack bundle.
+- **Current Evidence (2026-03-29):** Prototype builder is operational via [tools/content-pack-builder/build_pack.py](../../tools/content-pack-builder/build_pack.py) and validator via [tools/content-pack-builder/validate_pack.py](../../tools/content-pack-builder/validate_pack.py). A new all-terms seed pack source was authored at [tools/content-pack-builder/content/maths-grade6-caps-all-terms-v1.0/chunks.json](../../tools/content-pack-builder/content/maths-grade6-caps-all-terms-v1.0/chunks.json) with validation queries at [tools/content-pack-builder/content/maths-grade6-caps-all-terms-v1.0/test_queries.json](../../tools/content-pack-builder/content/maths-grade6-caps-all-terms-v1.0/test_queries.json). Built artifact: [content-packs/maths-grade6-caps-all-terms-v1.0.pack](../../content-packs/maths-grade6-caps-all-terms-v1.0.pack). Validation evidence: 28/28 checksum pass, Top-3 retrieval accuracy 93.8% (15/16), average embed time 10.0 ms, average search time 0.474 ms.
 - **Acceptance Criteria:**
   - [ ] `python pack-builder.py build --input ./content/ --output ./dist/` produces a valid pack.
   - [ ] Validates chunk size (≤ 2 000 tokens), required metadata fields, and topic_path format.
   - [ ] Computes embeddings using all-MiniLM-L6-v2 (same model used on-device — ADR 0007).
   - [ ] Generates SHA-256 checksums in the manifest.
   - [ ] Runs fully offline (no API calls to external services).
+- **Still To Do:**
+  - Align the tool interface with the Phase 2 acceptance contract (single CLI entrypoint / final command shape).
+  - Add explicit schema validation for chunk count, token budget, and `topic_path` structure before build.
+  - Document and test CPU-only execution path so unsupported GPUs do not break local builds.
+  - Add regression coverage for builder/validator behavior in CI.
 
 ### P0-203: Grade 6 Mathematics Content Pack — Full
 
 - **Description:** Author the complete Grade 6 CAPS Mathematics content pack covering all four terms. This is the curriculum content that makes V1 useful.
+- **Current Evidence (2026-03-29):** Seed all-terms pack authored and built: [content-packs/maths-grade6-caps-all-terms-v1.0.pack](../../content-packs/maths-grade6-caps-all-terms-v1.0.pack). Current scope is 28 seed chunks spanning Terms 1–4 across numbers, fractions, decimals, percentages, patterns, geometry, measurement, data handling, probability, and ratio/rate. This is enough for end-to-end app testing but does **not** yet satisfy full CAPS coverage or the target chunk density per topic.
 - **Acceptance Criteria:**
   - [ ] Covers all CAPS Grade 6 Mathematics topics across Terms 1–4.
   - [ ] Each topic has ≥ 3 content chunks and ≥ 2 worked examples.
   - [ ] Content reviewed by a qualified mathematics educator.
   - [ ] Pack passes all validation checks from the pack builder.
   - [ ] Compressed pack size ≤ 200 MB.
+- **Still To Do:**
+  - Expand the seed pack into full CAPS topic coverage for every Grade 6 term.
+  - Increase each topic to the target structure: concept, procedure, misconception, plus at least 2 worked examples.
+  - Review and correct content against the official CAPS pacing guide with educator sign-off.
+  - Increase test query coverage to represent the full syllabus and catch retrieval gaps earlier.
 
 ### P1-204: Content Pack Update (Delta)
 

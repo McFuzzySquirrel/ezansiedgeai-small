@@ -274,4 +274,6 @@ See the full [ADR index](ejs-docs/adr/) for all decisions.
 | [Constraints](docs/product/constraints.md) | Hardware, connectivity, power, and deployment realities |
 | [User Personas](docs/product/user-personas.md) | Thandiwe, Sipho, Ms. Dlamini, and others |
 | [Coding Principles](docs/development/coding-principles.md) | Offline-first patterns, resource budgets, performance rules |
+| [Emulator Testing Runbook](docs/development/emulator-testing-runbook.md) | Step-by-step setup, sanity checks, and troubleshooting for Android emulator testing |
+| [Sideload Testing Runbook](docs/development/sideload-testing-runbook.md) | Real-device APK install and validation guide for collaborator testing |
 | [V1 Backlog](docs/development/backlog-v1.md) | Execution plan across 4 phases |
