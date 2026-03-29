@@ -93,7 +93,67 @@ Current expected behavior:
 - App runs with mock AI implementations by default.
 - Real GGUF/ONNX model files are not required for this UI/flow pass.
 
-## 6) Useful Debug Commands
+## 6) Load a Content Pack onto the Device
+
+Recommended test pack:
+
+- content-packs/maths-grade6-caps-all-terms-v1.0.pack
+
+### ADB-based install into app storage
+
+1. Push to shared device storage:
+   - adb push content-packs/maths-grade6-caps-all-terms-v1.0.pack /sdcard/Download/
+2. Copy into the app pack directory:
+   - adb shell run-as com.ezansi.learner mkdir -p files/content-packs
+   - adb shell run-as com.ezansi.learner cp /sdcard/Download/maths-grade6-caps-all-terms-v1.0.pack files/content-packs/
+3. Verify the copy:
+   - adb shell run-as com.ezansi.learner ls -lh files/content-packs
+4. Relaunch the app.
+
+Expected result:
+
+1. Library shows the installed pack.
+2. Topics shows real Grade 6 content.
+3. Chat remains mock-driven on this branch unless native AI integrations are switched on.
+
+### Manual file-transfer fallback
+
+If `run-as` copy is unavailable, keep the `.pack` on the device and use ADB later to move it into app-private storage. The current app UI does not yet expose an in-app pack picker/import action.
+
+## 7) Stage GGUF and ONNX Model Files on the Device
+
+Use this to prepare a device for future real-model testing.
+
+Expected filenames from the app code:
+
+1. `qwen2.5-1.5b-instruct-q4_k_m.gguf`
+2. `all-MiniLM-L6-v2.onnx`
+
+Current limitation:
+
+1. This branch still wires `MockLlmEngine` and `MockEmbeddingModel` in the app container.
+2. Staging these files prepares storage and paths, but does not enable real inference by itself yet.
+
+Model source guidance:
+
+- models/phone-models/README.md
+
+ADB staging flow:
+
+1. Create the app model directory:
+   - adb shell run-as com.ezansi.learner mkdir -p files/models
+2. Push GGUF to shared storage:
+   - adb push models/phone-models/qwen2.5-1.5b-instruct-q4_k_m.gguf /sdcard/Download/
+3. Copy GGUF into app storage:
+   - adb shell run-as com.ezansi.learner cp /sdcard/Download/qwen2.5-1.5b-instruct-q4_k_m.gguf files/models/
+4. Push ONNX file to shared storage once available as a single `.onnx` file:
+   - adb push <path-to>/all-MiniLM-L6-v2.onnx /sdcard/Download/
+5. Copy ONNX file into app storage:
+   - adb shell run-as com.ezansi.learner cp /sdcard/Download/all-MiniLM-L6-v2.onnx files/models/
+6. Verify files:
+   - adb shell run-as com.ezansi.learner ls -lh files/models
+
+## 8) Useful Debug Commands
 
 From apps/learner-mobile:
 
@@ -106,8 +166,12 @@ From apps/learner-mobile:
    - ./gradlew installDebug
 4. Run unit tests before sideload:
    - ./gradlew test
+5. List installed app-private content packs:
+   - adb shell run-as com.ezansi.learner ls -lh files/content-packs
+6. List staged model files:
+   - adb shell run-as com.ezansi.learner ls -lh files/models
 
-## 7) Common Sideload Issues
+## 9) Common Sideload Issues
 
 ### INSTALL_FAILED_VERSION_DOWNGRADE
 
@@ -144,7 +208,22 @@ Fix:
 2. Confirm APK targets supported Android version
 3. Rebuild with ./gradlew assembleDebug
 
-## 8) Collaboration Reporting Template
+### Content pack does not appear after copy
+
+Fix:
+
+1. Verify it was copied into `files/content-packs` under `run-as`
+2. Relaunch the app
+3. Confirm the filename still ends with `.pack`
+
+### GGUF or ONNX files are staged but AI output is still placeholder text
+
+Fix:
+
+1. No file fix needed on this branch
+2. The app still uses mock AI engines until the native ONNX and llama.cpp integrations are wired into `AppContainer`
+
+## 10) Collaboration Reporting Template
 
 When filing a test report, include:
 
@@ -153,13 +232,15 @@ When filing a test report, include:
 3. Install method used (USB ADB, Wi-Fi ADB, manual)
 4. Which checklist items passed or failed
 5. Crash log excerpt or screenshot for failures
+6. Whether `.pack`, GGUF, and ONNX files were staged
 
-## 9) Ownership and Updates
+## 11) Ownership and Updates
 
 Update this runbook in the same PR whenever sideload package name, install flow, or build output paths change.
 
 Related docs:
 
 - docs/development/emulator-testing-runbook.md
+- models/phone-models/README.md
 - README.md
 - apps/learner-mobile/README.md

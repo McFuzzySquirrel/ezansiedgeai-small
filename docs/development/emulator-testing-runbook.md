@@ -86,14 +86,78 @@ Expected behavior in current setup:
 - Mock AI implementations are used by default.
 - You can test UI and flow without GGUF/ONNX model files.
 
-## 7) Optional Test Commands
+## 7) Load a Content Pack into the Emulator
+
+Use this when you want the Library and Topics screens to show real curriculum content.
+
+Recommended test pack:
+
+- content-packs/maths-grade6-caps-all-terms-v1.0.pack
+
+From repository root:
+
+1. Push the pack to emulator shared storage:
+   - adb push content-packs/maths-grade6-caps-all-terms-v1.0.pack /sdcard/Download/
+2. Copy it into the app's private pack directory:
+   - adb shell run-as com.ezansi.learner mkdir -p files/content-packs
+   - adb shell run-as com.ezansi.learner cp /sdcard/Download/maths-grade6-caps-all-terms-v1.0.pack files/content-packs/
+3. Verify it is present:
+   - adb shell run-as com.ezansi.learner ls -lh files/content-packs
+4. Force-stop and relaunch the app:
+   - adb shell am force-stop com.ezansi.learner
+   - adb shell monkey -p com.ezansi.learner -c android.intent.category.LAUNCHER 1
+
+Expected result:
+
+1. Library shows the installed pack.
+2. Topics shows non-empty curriculum content.
+3. Chat still uses mock generation on this branch unless native AI integrations are switched on.
+
+Fallback if `cp` fails in `run-as` shell:
+
+- adb shell "run-as com.ezansi.learner sh -c 'cat /sdcard/Download/maths-grade6-caps-all-terms-v1.0.pack > files/content-packs/maths-grade6-caps-all-terms-v1.0.pack'"
+
+## 8) Stage GGUF and ONNX Model Files in the Emulator
+
+Use this when you want the emulator storage layout ready for real on-device AI testing.
+
+Expected filenames in the app code:
+
+1. GGUF LLM: `qwen2.5-1.5b-instruct-q4_k_m.gguf`
+2. ONNX embedding model: `all-MiniLM-L6-v2.onnx`
+
+Current limitation on this branch:
+
+1. The app still wires `MockLlmEngine` and `MockEmbeddingModel` by default.
+2. Staging the files is useful for storage/path verification, but it does not yet enable real inference by itself.
+
+Model download guidance:
+
+- models/phone-models/README.md
+
+ADB staging commands:
+
+1. Create the model directory:
+   - adb shell run-as com.ezansi.learner mkdir -p files/models
+2. Push the GGUF file to shared storage:
+   - adb push models/phone-models/qwen2.5-1.5b-instruct-q4_k_m.gguf /sdcard/Download/
+3. Copy the GGUF file into app storage:
+   - adb shell run-as com.ezansi.learner cp /sdcard/Download/qwen2.5-1.5b-instruct-q4_k_m.gguf files/models/
+4. Push the ONNX file to shared storage once exported/downloaded as a single `.onnx` file:
+   - adb push <path-to>/all-MiniLM-L6-v2.onnx /sdcard/Download/
+5. Copy the ONNX file into app storage:
+   - adb shell run-as com.ezansi.learner cp /sdcard/Download/all-MiniLM-L6-v2.onnx files/models/
+6. Verify both files are present:
+   - adb shell run-as com.ezansi.learner ls -lh files/models
+
+## 9) Optional Test Commands
 
 From apps/learner-mobile:
 
 1. Unit tests: ./gradlew test
 2. Instrumented tests (if configured for modules): ./gradlew connectedDebugAndroidTest
 
-## 8) Common Issues and Fixes
+## 10) Common Issues and Fixes
 
 ### Emulator is very slow
 
@@ -119,7 +183,18 @@ From apps/learner-mobile:
   - adb uninstall ai.ezansi.edge
   - ./gradlew installDebug
 
-## 9) Suggested Collaboration Workflow
+### Content pack copied but not visible in the app
+
+- Confirm the file exists in `run-as` app storage, not only in `/sdcard/Download`.
+- Relaunch the app after copying the file.
+- Check exact filename ends with `.pack`.
+
+### GGUF or ONNX files are present but chat still uses placeholder AI
+
+- This is expected on the current branch.
+- The app still uses `MockLlmEngine` and `MockEmbeddingModel` in `AppContainer` until native integrations are enabled.
+
+## 11) Suggested Collaboration Workflow
 
 1. Pull latest branch.
 2. Run quick build/install.
@@ -129,9 +204,10 @@ From apps/learner-mobile:
    - Logcat snippet
    - Repro steps
    - Device/API level
+   - Whether `.pack`, GGUF, and ONNX files were staged
 5. Open issue or PR comment with findings.
 
-## 10) Ownership and Updates
+## 12) Ownership and Updates
 
 When app startup, package name, or module structure changes, update this runbook in the same PR.
 
@@ -139,6 +215,7 @@ Current source references:
 
 - Root project README
 - apps/learner-mobile README
+- models/phone-models README
 
 Related docs:
 
