@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -49,6 +50,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 @Composable
 fun PreferencesScreen(
     viewModel: PreferencesViewModel,
+    onApplyAndBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -94,7 +96,24 @@ fun PreferencesScreen(
                     onExplanationStyleChanged = viewModel::setExplanationStyle,
                     onReadingLevelChanged = viewModel::setReadingLevel,
                     onExampleTypeChanged = viewModel::setExampleType,
+                    modifier = Modifier.weight(1f),
                 )
+
+                HorizontalDivider()
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    Button(
+                        onClick = onApplyAndBack,
+                        modifier = Modifier.heightIn(min = 48.dp),
+                    ) {
+                        Text(text = stringResource(R.string.preferences_apply_and_back))
+                    }
+                }
             }
         }
     }
@@ -151,7 +170,7 @@ private fun PreferencesContent(
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {

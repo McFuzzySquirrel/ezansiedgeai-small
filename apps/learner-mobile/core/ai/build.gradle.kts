@@ -29,14 +29,11 @@ android {
 dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:data"))
+    implementation(project(":core:llama"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
-
-    // TODO: Add llama.cpp Android bindings for LLM inference
-    // No stable Maven artifact yet — will require local .aar or JitPack build.
-    // implementation(libs.llama.android)
 
     // ONNX Runtime Android for embedding model inference (all-MiniLM-L6-v2).
     // The OnnxEmbeddingModel uses reflection to load ONNX classes so the app

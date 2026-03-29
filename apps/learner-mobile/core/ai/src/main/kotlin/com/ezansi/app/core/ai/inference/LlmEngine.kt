@@ -66,4 +66,19 @@ interface LlmEngine {
      * Safe to call even if the model is not loaded.
      */
     fun unload()
+
+    /**
+     * Runtime mode for observability during emulator/device validation.
+     */
+    fun runtimeMode(): LlmRuntimeMode = LlmRuntimeMode.UNKNOWN
+}
+
+/**
+ * Observable runtime mode for LLM inference.
+ */
+enum class LlmRuntimeMode {
+    REAL_NATIVE,
+    NATIVE_UNAVAILABLE,
+    MOCK,
+    UNKNOWN,
 }

@@ -8,6 +8,7 @@
     <string name="preferences_title">Learning Preferences</string>
     <string name="preferences_for_profile">Settings for %s</string>
     <string name="preferences_no_profile">Create a profile first to set your preferences.</string>
+    <string name="preferences_apply_and_back">Apply and go back</string>
 
     <!-- Explanation Style (PE-01) -->
     <string name="preferences_explanation_style_title">How should I explain things?</string>

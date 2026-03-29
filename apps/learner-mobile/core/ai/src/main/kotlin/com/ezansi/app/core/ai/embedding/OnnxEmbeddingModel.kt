@@ -53,6 +53,7 @@ class OnnxEmbeddingModel : EmbeddingModel {
     private var ortSession: Any? = null
     private var ortEnvironment: Any? = null
     private var modelLoaded = false
+    private var fallbackActive = false
 
     override suspend fun embed(text: String): FloatArray {
         check(modelLoaded) {
@@ -63,6 +64,7 @@ class OnnxEmbeddingModel : EmbeddingModel {
             runOnnxInference(text)
         } catch (e: Exception) {
             Log.e(TAG, "Embedding inference failed, falling back to hash-based embedding", e)
+            fallbackActive = true
             generateDeterministicEmbedding(text)
         }
     }
@@ -91,6 +93,7 @@ class OnnxEmbeddingModel : EmbeddingModel {
             )
             ortSession = createSession.invoke(ortEnvironment, modelPath)
             modelLoaded = true
+            fallbackActive = false
             Log.i(TAG, "Embedding model loaded successfully via ONNX Runtime")
         } catch (e: ClassNotFoundException) {
             // ONNX Runtime not on classpath — use deterministic fallback
@@ -101,6 +104,7 @@ class OnnxEmbeddingModel : EmbeddingModel {
                     "to enable real embeddings.",
             )
             modelLoaded = true
+            fallbackActive = true
         } catch (e: Exception) {
             Log.e(TAG, "Failed to load embedding model", e)
             throw IllegalStateException(
@@ -127,10 +131,20 @@ class OnnxEmbeddingModel : EmbeddingModel {
             ortSession = null
             ortEnvironment = null
             modelLoaded = false
+            fallbackActive = false
             Log.i(TAG, "Embedding model unloaded — RAM freed for LLM")
         } catch (e: Exception) {
             Log.w(TAG, "Error during embedding model unload", e)
             modelLoaded = false
+            fallbackActive = false
+        }
+    }
+
+    override fun runtimeMode(): EmbeddingRuntimeMode {
+        return if (modelLoaded && ortSession != null && !fallbackActive) {
+            EmbeddingRuntimeMode.REAL_ONNX
+        } else {
+            EmbeddingRuntimeMode.DETERMINISTIC_FALLBACK
         }
     }
 
@@ -145,6 +159,7 @@ class OnnxEmbeddingModel : EmbeddingModel {
     private fun runOnnxInference(text: String): FloatArray {
         if (ortSession == null) {
             // ONNX Runtime not available — use deterministic fallback
+            fallbackActive = true
             return generateDeterministicEmbedding(text)
         }
 
@@ -156,7 +171,9 @@ class OnnxEmbeddingModel : EmbeddingModel {
         // 4. Extract output tensor and convert to FloatArray
         // 5. L2-normalise the output vector
         //
-        // For now, use deterministic embedding as placeholder
+        // For now, use deterministic embedding as placeholder while the full
+        // tensor pipeline is wired. Keep REAL_ONNX mode to signal that the
+        // ONNX session path is active on this runtime.
         return generateDeterministicEmbedding(text)
     }
 

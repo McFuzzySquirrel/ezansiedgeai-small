@@ -207,7 +207,15 @@ fun EzansiNavHost(
                     profileRepository = container.profileRepository,
                 ),
             )
-            PreferencesScreen(viewModel = preferencesViewModel)
+            PreferencesScreen(
+                viewModel = preferencesViewModel,
+                onApplyAndBack = {
+                    navController.navigate(EzansiRoute.Profiles.route) {
+                        popUpTo(EzansiRoute.Profiles.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
+                },
+            )
         }
 
         composable(EzansiRoute.Library.route) {

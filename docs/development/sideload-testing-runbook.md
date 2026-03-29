@@ -90,8 +90,9 @@ After launch, verify:
 
 Current expected behavior:
 
-- App runs with mock AI implementations by default.
-- Real GGUF/ONNX model files are not required for this UI/flow pass.
+- App attempts real runtime paths by default (`OnnxEmbeddingModel` and `LlamaCppEngine`).
+- If ONNX setup fails, embedding uses deterministic fallback.
+- If llama native bindings are unavailable, generation returns an explicit runtime-unavailable response.
 
 ## 6) Load a Content Pack onto the Device
 
@@ -114,7 +115,7 @@ Expected result:
 
 1. Library shows the installed pack.
 2. Topics shows real Grade 6 content.
-3. Chat remains mock-driven on this branch unless native AI integrations are switched on.
+3. Chat runtime status indicates ONNX real/fallback state and llama native availability.
 
 ### Manual file-transfer fallback
 
@@ -131,8 +132,9 @@ Expected filenames from the app code:
 
 Current limitation:
 
-1. This branch still wires `MockLlmEngine` and `MockEmbeddingModel` in the app container.
-2. Staging these files prepares storage and paths, but does not enable real inference by itself yet.
+1. `LlamaCppEngine` is wired by default, but native llama bindings are not yet integrated.
+2. `OnnxEmbeddingModel` is wired by default; if ONNX cannot initialise, embedding falls back deterministically.
+3. Staging these files prepares storage and runtime paths, and is required for future native-inference readiness.
 
 Model source guidance:
 
@@ -216,12 +218,12 @@ Fix:
 2. Relaunch the app
 3. Confirm the filename still ends with `.pack`
 
-### GGUF or ONNX files are staged but AI output is still placeholder text
+### GGUF or ONNX files are staged but runtime still reports native-unavailable
 
 Fix:
 
-1. No file fix needed on this branch
-2. The app still uses mock AI engines until the native ONNX and llama.cpp integrations are wired into `AppContainer`
+1. No file-path fix is needed if files are correctly staged.
+2. Llama native integration is still pending; check `ExplanationEngine` runtime status logs to confirm current mode.
 
 ## 10) Collaboration Reporting Template
 

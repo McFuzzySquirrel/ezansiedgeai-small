@@ -2,7 +2,9 @@ package com.ezansi.app.core.ai
 
 import android.util.Log
 import com.ezansi.app.core.ai.embedding.EmbeddingModel
+import com.ezansi.app.core.ai.embedding.EmbeddingRuntimeMode
 import com.ezansi.app.core.ai.inference.LlmEngine
+import com.ezansi.app.core.ai.inference.LlmRuntimeMode
 import com.ezansi.app.core.ai.prompt.PromptBuilder
 import com.ezansi.app.core.ai.retrieval.ContentRetriever
 import com.ezansi.app.core.ai.retrieval.RetrievalResult
@@ -80,11 +82,13 @@ class ExplanationEngineImpl(
         /** Maximum tokens for LLM generation per response (AI-04). */
         private const val MAX_GENERATION_TOKENS = 548
 
-        /** Wall-time cap for the entire pipeline in milliseconds (AI-09). */
-        private const val PIPELINE_TIMEOUT_MS = 30_000L
+        /** Wall-time cap for the entire pipeline in milliseconds (AI-09).
+         *  Budget: model load (~2s) + embed/retrieve (~1s) + prompt eval (~50s on
+         *  mid-range ARM) + generation (~30s) ≈ 83s. 120s gives headroom. */
+        private const val PIPELINE_TIMEOUT_MS = 120_000L
 
         /** Minimum similarity score for a chunk to be considered relevant. */
-        private const val MIN_RELEVANCE_THRESHOLD = 0.1f
+        private const val MIN_RELEVANCE_THRESHOLD = 0.05f
 
         /** Expected embedding model filename in the models directory. */
         private const val EMBEDDING_MODEL_FILENAME = "all-MiniLM-L6-v2.onnx"
@@ -135,6 +139,7 @@ class ExplanationEngineImpl(
         Log.i(TAG, "Pipeline started for question (${question.length} chars)")
 
         ensureEmbeddingModelLoaded()
+        emitRuntimeStatus(collector)
 
         // ── Stage 2: Embed & Retrieve ───────────────────────────────
         collector.emit(ExplanationResult.Retrieving)
@@ -161,6 +166,7 @@ class ExplanationEngineImpl(
         // Sequential model loading (AI-08): free embedding RAM before loading LLM
         unloadEmbeddingModelIfLlmNotLoaded()
         ensureLlmModelLoaded()
+        emitRuntimeStatus(collector)
 
         // ── Stage 4: Build prompt with learner preferences ──────────
         val preferences = loadPreferencesForProfile(profileId)
@@ -200,6 +206,45 @@ class ExplanationEngineImpl(
             ExplanationResult.Complete(
                 fullText = fullResponse.toString(),
                 sources = sources,
+            ),
+        )
+    }
+
+    private suspend fun emitRuntimeStatus(
+        collector: kotlinx.coroutines.flow.FlowCollector<ExplanationResult>,
+    ) {
+        val embeddingMode = embeddingModel.runtimeMode()
+        val llmMode = llmEngine.runtimeMode()
+
+        val embeddingMessage = when (embeddingMode) {
+            EmbeddingRuntimeMode.REAL_ONNX -> "Real ONNX path active"
+            EmbeddingRuntimeMode.DETERMINISTIC_FALLBACK -> "ONNX fallback deterministic embedding path"
+            EmbeddingRuntimeMode.MOCK -> "Mock embedding path active"
+            EmbeddingRuntimeMode.UNKNOWN -> "Embedding runtime mode unknown"
+        }
+
+        val llmMessage = when (llmMode) {
+            LlmRuntimeMode.REAL_NATIVE -> "Llama native runtime path active"
+            LlmRuntimeMode.NATIVE_UNAVAILABLE -> "Llama native unavailable path"
+            LlmRuntimeMode.MOCK -> "Mock LLM path active"
+            LlmRuntimeMode.UNKNOWN -> "LLM runtime mode unknown"
+        }
+
+        val message = "$embeddingMessage; $llmMessage"
+
+        if (embeddingMode == EmbeddingRuntimeMode.DETERMINISTIC_FALLBACK ||
+            llmMode == LlmRuntimeMode.NATIVE_UNAVAILABLE
+        ) {
+            Log.w(TAG, message)
+        } else {
+            Log.i(TAG, message)
+        }
+
+        collector.emit(
+            ExplanationResult.RuntimeStatus(
+                embeddingMode = embeddingMode,
+                llmMode = llmMode,
+                message = message,
             ),
         )
     }

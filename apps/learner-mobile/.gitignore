@@ -1,5 +1,6 @@
 # Build outputs
 build/
+.cxx/
 .gradle/
 *.apk
 *.aab
@@ -22,6 +23,12 @@ captures/
 *.onnx
 *.bin
 *.pack
+
+# Kotlin compiler metadata
+.kotlin/
+
+# Vendored native dependencies (downloaded by setup script)
+third-party/
 
 # Logs
 *.log

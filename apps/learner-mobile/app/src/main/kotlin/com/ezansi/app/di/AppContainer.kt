@@ -4,9 +4,9 @@ import android.content.Context
 import com.ezansi.app.core.ai.ExplanationEngine
 import com.ezansi.app.core.ai.ExplanationEngineImpl
 import com.ezansi.app.core.ai.embedding.EmbeddingModel
-import com.ezansi.app.core.ai.embedding.MockEmbeddingModel
+import com.ezansi.app.core.ai.embedding.OnnxEmbeddingModel
 import com.ezansi.app.core.ai.inference.LlmEngine
-import com.ezansi.app.core.ai.inference.MockLlmEngine
+import com.ezansi.app.core.ai.inference.LlamaCppEngine
 import com.ezansi.app.core.ai.prompt.PromptBuilder
 import com.ezansi.app.core.ai.retrieval.ContentRetriever
 import com.ezansi.app.core.ai.retrieval.CosineSimilarityRetriever
@@ -146,13 +146,11 @@ class AppContainer(private val context: Context) {
     /**
      * On-device embedding model for converting questions to vectors.
      *
-     * Uses MockEmbeddingModel until ONNX Runtime Android is integrated.
-     * Swap to OnnxEmbeddingModel when the native library is available.
+     * Default: OnnxEmbeddingModel.
+     * Falls back to deterministic embeddings if ONNX runtime is unavailable.
      */
     private val embeddingModel: EmbeddingModel by lazy {
-        MockEmbeddingModel()
-        // TODO(ai-pipeline-engineer): Swap to OnnxEmbeddingModel() when
-        // ONNX Runtime Android dependency is fully integrated and tested.
+        OnnxEmbeddingModel()
     }
 
     /**
@@ -173,13 +171,12 @@ class AppContainer(private val context: Context) {
     /**
      * On-device LLM engine for generating explanations.
      *
-     * Uses MockLlmEngine until llama.cpp Android bindings are integrated.
-     * Swap to LlamaCppEngine when the native library is available.
+     * Default: LlamaCppEngine.
+     * If llama native bindings are unavailable, returns an explicit
+     * runtime-unavailable response instead of silently using mocks.
      */
     private val llmEngine: LlmEngine by lazy {
-        MockLlmEngine()
-        // TODO(ai-pipeline-engineer): Swap to LlamaCppEngine() when
-        // llama-android dependency is available as a stable Maven artifact.
+        LlamaCppEngine()
     }
 
     /** ExplanationEngine — sole public API for the AI layer (§7.3). */

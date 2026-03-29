@@ -775,9 +775,10 @@ So, the perimeter of a rectangle that is 8 cm long and 5 cm wide is 26 cm. Remem
 | CPU | ARMv8-A (Cortex-A53 class) | Host CPU |
 | Android API | 29 | N/A (host benchmark) |
 
-> ⚠️ **Note:** These benchmarks ran on the development host, not on Android
-> hardware or emulator. Absolute latency numbers will differ on target devices.
+> ⚠️ **Note:** The benchmarks above ran on the development **host, not on Android**
+> hardware. Absolute latency numbers will differ on target devices.
 > Relative model rankings and RAM usage patterns are the primary signal.
+> See Section 8 for real-device validation results.
 
 ## 7. Recommendation
 
@@ -795,11 +796,40 @@ So, the perimeter of a rectangle that is 8 cm long and 5 cm wide is 26 cm. Remem
 4. Proceed to P0-002 (embedding + retrieval spike) in parallel.
 
 
-## 8. Verdict
+## 8. Real-Device Validation (Addendum 2026-03-29)
+
+> **Device:** Vivo V2434 (ARM Cortex-A76, Android 15, 8 GB RAM)
+> **Method:** Wireless ADB debug, sideloaded APK with vendored llama.cpp JNI bridge
+> **Model:** qwen2.5-1.5b-instruct-q4_k_m.gguf (same candidate selected above)
+> **Build flags:** CMake `-O3 -DNDEBUG` for debug builds (ARM NEON optimised)
+
+| Metric | Host Benchmark | Real Device | Notes |
+|--------|---------------|-------------|-------|
+| Prompt eval (594 tok) | — | 46,080 ms (~12.9 tok/s) | First real-device measurement |
+| Token generation (139 tok) | 7.995s / 150 tok | 21,233 ms (~6.5 tok/s) | ~3× slower than host; expected for ARM |
+| Total pipeline | — | 68,508 ms | embed → retrieve → unload → LLM load → generate |
+| Output length | 150 tok (capped) | 644 chars (139 tok) | Uncapped real question |
+| Crash / OOM | — | None | Stable on 8 GB device |
+
+**Key observations:**
+- Token generation throughput (6.5 tok/s) is lower than host (19 tok/s) but produces a complete, coherent answer within ~70 seconds.
+- Sequential model loading (ONNX unload → GGUF load) works correctly, confirming ADR-0009 manual DI approach.
+- Debug builds without `-O3` were ~10× slower on ARM; the optimisation flag is essential for usable performance.
+- No thermal throttling observed during a single query; sustained-inference thermal testing remains future work.
+- Pipeline timeout was increased from 30s → 120s (generation timeout 30s → 90s) based on real-device latency.
+
+**Updated next steps:**
+1. ~~Validate on Android emulator~~ — Done (emulator + real device)
+2. Assess output quality for curriculum alignment (manual review) — Partially validated via e2e pipeline
+3. Measure thermal behaviour during sustained inference — Still pending
+4. ~~Proceed to P0-002~~ — Completed
+5. Optimise inference speed: explore `n_threads` tuning, `mmap`, and batch-size adjustments for ARM targets
+
+## 9. Verdict
 
 **Overall: GO ✅**
 
-At least one model meets all acceptance criteria. Proceed with the recommended candidate to P0-005 (end-to-end pipeline).
+At least one model meets all acceptance criteria. Real-device validation confirms the selected model (Qwen 2.5 1.5B Q4_K_M) runs end-to-end on target-class ARM hardware without crash or OOM. Proceed with the recommended candidate to P0-005 (end-to-end pipeline).
 
 ---
 

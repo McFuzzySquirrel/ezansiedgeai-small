@@ -58,4 +58,19 @@ interface EmbeddingModel {
      * This is safe to call even if the model is not loaded.
      */
     fun unload()
+
+    /**
+     * Runtime mode for observability during emulator/device validation.
+     */
+    fun runtimeMode(): EmbeddingRuntimeMode = EmbeddingRuntimeMode.UNKNOWN
+}
+
+/**
+ * Observable runtime mode for embedding inference.
+ */
+enum class EmbeddingRuntimeMode {
+    REAL_ONNX,
+    DETERMINISTIC_FALLBACK,
+    MOCK,
+    UNKNOWN,
 }
