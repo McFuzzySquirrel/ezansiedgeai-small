@@ -23,6 +23,9 @@ captures/
 *.bin
 *.pack
 
+# Kotlin compiler metadata
+.kotlin/
+
 # Logs
 *.log
 *.hprof
