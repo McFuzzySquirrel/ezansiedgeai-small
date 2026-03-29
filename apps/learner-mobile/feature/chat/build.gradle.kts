@@ -51,6 +51,7 @@ dependencies {
     testRuntimeOnly(libs.junit5.engine)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.kotlinx.coroutines.test)
+    androidTestImplementation(platform(libs.compose.bom))
 }
 
 tasks.withType<Test> {
