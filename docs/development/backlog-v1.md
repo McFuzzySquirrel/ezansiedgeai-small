@@ -35,6 +35,7 @@ Each phase builds on the previous one. Do not start Phase N+1 work until Phase N
   - [x] Document model candidates tested, latency numbers, and RAM profiles in a spike report.
 - **Output:** Spike report + recommendation on model + runtime (llama.cpp vs ONNX Runtime vs other).
 - **Result:** GO — Qwen2.5-1.5B-Instruct Q4_K_M via llama.cpp. 4 models benchmarked (12 prompts × 3 runs each). Only Qwen2.5-1.5B passes all criteria. SmolLM2-1.7B is backup (fastest but exceeds RAM by 8%). See [ADR 0006](../../ejs-docs/adr/0006-qwen25-1.5b-as-on-device-llm.md), [spike report](../../spikes/p0-001-llm-inference/reports/spike-report.md).
+- **Real-Device Validation (2026-03-29):** Confirmed on Vivo V2434 (ARM Cortex-A76, Android 15, 8 GB RAM) via wireless ADB. Prompt eval: 46,080 ms (~12.9 tok/s for 594 tokens). Generation: 21,233 ms (~6.5 tok/s for 139 tokens). Total pipeline: 68,508 ms. No crash, no OOM. CMake `-O3` required for usable ARM performance (~10× improvement over default `-O0` debug builds).
 - **Completed:** 2026-03-03 | Branch: `spike/p0-001-llm-inference`
 
 ### P0-002: Local Embedding + Retrieval Spike (+ Storage Budget) ✅
@@ -49,6 +50,7 @@ Each phase builds on the previous one. Do not start Phase N+1 work until Phase N
   - [x] Revised storage budget defined (APK ≤ 50 MB, models downloaded separately, content packs ≤ 200 MB each).
 - **Output:** Spike report + recommendation on embedding model and local vector store + revised storage budget + ADR 0007.
 - **Result:** GO — all-MiniLM-L6-v2 + FAISS Flat. 12 combinations benchmarked (3 models × 4 stores). 8/12 pass. all-MiniLM-L6-v2 achieves 100% retrieval accuracy across all 4 stores (87 MB, ~10ms embed, 554 MB peak RAM). bge-small-en-v1.5 eliminated (128 MB exceeds 100 MB limit). gte-small passes but 3× slower and 5% less accurate. Vector store choice irrelevant at content-pack scale (<1,000 chunks). Storage budget redefined as component model: APK ≤50 MB + LLM ~1,066 MB + embedding ~87 MB + packs ≤200 MB = ~1,403 MB first-launch download. RAM headroom confirmed: 554 MB peak vs 1,161 MB budget on 4 GB devices. See [ADR 0007](../../ejs-docs/adr/0007-embedding-model-vector-store-storage-budget.md), [spike report](../../spikes/p0-002-embedding-retrieval/reports/spike-report.md).
+- **Real-Device Validation (2026-03-29):** ONNX embedding model loads and produces embeddings on Vivo V2434 (ARM Cortex-A76, Android 15). Retrieval returns grounded curriculum chunks. Sequential model management (ONNX unload → GGUF load) works correctly on device.
 - **Completed:** 2026-03-04 | Branch: `spike/p0-002-embedding-retrieval`
 
 ### P0-003: Battery & Thermal Validation
@@ -61,6 +63,7 @@ Each phase builds on the previous one. Do not start Phase N+1 work until Phase N
   - [ ] Feasibility verdict: GO / NO-GO / CONDITIONAL with stated conditions.
 - **Output:** Battery & thermal test report + go/no-go decision.
 - **Note:** Storage footprint validation moved to P0-002 (now complete). Device RAM floor raised from 3 GB to 4 GB (marketed) — see [ADR 0007](../../ejs-docs/adr/0007-embedding-model-vector-store-storage-budget.md). Deferred until real hardware available; not on the critical path for P0-004/P0-005.
+- **Partial Evidence (2026-03-29):** Single full-pipeline query on Vivo V2434 (8 GB RAM, 68.5s total) completed without thermal throttling or OOM. Sustained multi-query testing still pending.
 
 ### P0-004: Sample Content Pack Creation ✅
 
@@ -94,6 +97,7 @@ Each phase builds on the previous one. Do not start Phase N+1 work until Phase N
   - Retrieval was grounded: correct chunks retrieved for all 5 questions
   - All generated answers correct and referenced chunk content
 - **Note on latency:** Dev machine runs CPU-only inference (~17-19s/question). The 15s on-device target is still valid for the target hardware (Android phone with GGUF + NNAPI). The p0-005 spike establishes the pipeline is architecturally correct; latency profiling on real hardware is part of P0-104.
+- **Real-Device Validation (2026-03-29):** Full RAG pipeline (embed → retrieve → unload ONNX → load GGUF → tokenize → prompt eval → generate → display) runs end-to-end on Vivo V2434 via wireless ADB. Total: 68,508 ms. Output: 644 chars coherent curriculum-grounded explanation. No crash, no OOM. See spike report addendum.
 - **Depends on:** P0-001 ✅, P0-002 ✅, P0-004 ✅
 
 ---
@@ -123,6 +127,7 @@ Each phase builds on the previous one. Do not start Phase N+1 work until Phase N
   - [x] UI is usable on a 720p, 5-inch screen.
   - [x] Meets touch-target accessibility requirements (48×48 dp). *(Minimum 48dp touch targets enforced)*
 - **Implementation:** `ChatScreen.kt` with `ChatMessageUi` model, `MarkdownText.kt` for Markdown + LaTeX rendering, `ChatViewModel` with `ExplanationEngine` integration. Messages streamed via `Flow<ExplanationResult>`.
+- **UX Fixes (2026-03-29):** Added explicit no-active-profile error message in chat send path (previously silent early return). Added stale-profile recovery: if profile created after chat screen loads, send path auto-refreshes. Retrieval-miss responses now display inline only — removed duplicate global error banner. Retrieval threshold lowered from 0.1 to 0.05.
 - **Completed:** 2026-03-17 | Branch: `agent-forge/build-agent-team`
 
 ### P0-103: Content Pack Loader ✅
@@ -145,6 +150,7 @@ Each phase builds on the previous one. Do not start Phase N+1 work until Phase N
   - [x] Response references retrieved curriculum content (verifiable by inspecting the prompt). *(Grounding enforced architecturally — template separates system/content/user sections)*
   - [x] Latency < 10 seconds for the full pipeline on the target emulator. *(30s timeout; sequential model loading — embedding unloads before LLM loads)*
 - **Implementation:** `ExplanationEngineImpl.kt` (state machine: Embedding → Retrieving → Generating → Complete), `EmbeddingModel` interface + `OnnxEmbeddingModel`/`MockEmbeddingModel`, `ContentRetriever` interface + `CosineSimilarityRetriever`/`FaissRetriever`, `LlmEngine` interface + `LlamaCppEngine`/`MockLlmEngine`, `PromptBuilder.kt`. ONNX Runtime 1.19.0 enabled in build config.
+- **Real-Runtime Validation (2026-03-29):** Real ONNX embedding + cosine retrieval confirmed on emulator and Vivo V2434. llama.cpp JNI bridge integrated via `:core:llama` module (vendored llama.cpp, arm64-v8a + x86_64). Full pipeline timeout raised to 120s; generation timeout to 90s based on real-device measurements. Retrieval threshold lowered from 0.1 to 0.05 to reduce false retrieval misses.
 - **Completed:** 2026-03-17 | Branch: `agent-forge/build-agent-team`
 
 ### P0-105: Learner Profile — Basic ✅
@@ -200,6 +206,7 @@ Each phase builds on the previous one. Do not start Phase N+1 work until Phase N
 ### P0-201: Learner Preference Engine
 
 - **Description:** Expand the profile system with preference controls: explanation style (`concise | detailed | step-by-step`), example type (`real-world | abstract | visual-description`), reading level (`basic | intermediate`).
+- **Partial Evidence (2026-03-29):** PreferencesScreen now has an "Apply and go back" button navigating to Profiles. Layout regression (button pushed off-screen by `fillMaxSize()` LazyColumn) caught during live emulator verification and fixed with `weight(1f)` + `fillMaxWidth()`.
 - **Acceptance Criteria:**
   - [ ] Preferences are editable from a settings screen (≤ 2 taps from chat).
   - [ ] Changing a preference immediately affects the next explanation generated.

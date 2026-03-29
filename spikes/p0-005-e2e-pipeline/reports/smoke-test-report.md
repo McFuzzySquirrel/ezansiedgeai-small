@@ -234,3 +234,44 @@ To check our answer: If Thandi had R80 and spent R60, then she has \( R80 - R60 
 ```
 A proper fraction has a numerator smaller than its denominator, while an improper fraction has a numerator equal to or larger than its denominator. Proper fractions represent less than one whole, whereas improper fractions can represent one whole or more. For example, 2/5 is a proper fraction because the numerator (2) is smaller than the denominator (5), but 7/4 is an improper fraction because the numerator (7) is equal to and larger than the denominator (4). Understanding these differences helps in converting between fractions and mixed numbers. Proper fractions are typically used for parts of a whole, while improper fractions can represent wholes or more.
 ```
+
+---
+
+## Real-Device Validation (Addendum 2026-03-29)
+
+> **Emulator:** Medium Phone API 36 (x86_64, 16 GB data partition)
+> **Device:** Vivo V2434 (ARM Cortex-A76, Android 15, 8 GB RAM)
+> **Method:** Wireless ADB debug, sideloaded APK with vendored llama.cpp JNI + ONNX Runtime
+> **Pack:** `maths-grade6-caps-all-terms-v1.0.pack` (28 chunks, Grade 6 all terms)
+> **Models:** all-MiniLM-L6-v2.onnx (87 MB) + qwen2.5-1.5b-instruct-q4_k_m.gguf (1.07 GB)
+
+### End-to-End Pipeline on Real Device
+
+| Phase | Host (this report) | Real Device | Notes |
+|-------|-------------------|-------------|-------|
+| ONNX embed load | 114–182 ms | Confirmed (logcat) | Loads via ONNX Runtime Android |
+| Query embedding | 9–13 ms | Confirmed (logcat) | Sub-second on ARM |
+| FAISS retrieval | < 1 ms | Confirmed (logcat) | Chunks retrieved and grounded |
+| ONNX unload | ~45 MB freed | Confirmed (logcat) | Sequential model management works |
+| LLM load | 760–832 ms | ~2,000 ms | JNI bridge loads libllama-jni.so |
+| Prompt eval (594 tok) | — | 46,080 ms (~12.9 tok/s) | First real-device measurement |
+| Token generation (139 tok) | 13–19s / 150 tok | 21,233 ms (~6.5 tok/s) | ARM vs host throughput gap expected |
+| **Total pipeline** | ~18.4s avg | **68,508 ms** | Full embed→retrieve→prompt→generate |
+| Output | 150 tok (capped) | 644 chars (139 tok) | Coherent curriculum-aligned answer |
+| Crash / OOM | None | None | Stable on 8 GB device |
+
+### Key Observations
+
+- The full RAG pipeline (embed → retrieve → unload ONNX → load GGUF → tokenize → prompt eval → generate → display) runs end-to-end on a real ARM device without crash or OOM.
+- Token generation at 6.5 tok/s is usable but ~3× slower than host benchmarks; optimisation opportunities include `n_threads` tuning and `mmap` for model loading.
+- Debug builds without CMake `-O3` were ~10× slower on ARM; the optimisation flag is essential.
+- Pipeline timeout was increased from 30s → 120s based on real-device latency observations.
+- Sequential model loading (ADR-0009) works correctly: ONNX unloads before GGUF loads, keeping peak RAM within budget.
+- Retrieval-miss path (queries outside content pack coverage) renders an inline assistant message; retrieval-success path grounds answers in curriculum content.
+- Content pack database (SQLite `.pack`) opens and closes cleanly across multiple queries.
+
+### Updated Verdict
+
+**Overall: GO ✅** — confirmed on real hardware.
+
+The end-to-end pipeline validated on host is now also validated on target-class ARM hardware. The primary remaining gap is sustained-inference thermal testing and generation speed optimisation for sub-30s total pipeline latency.
