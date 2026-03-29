@@ -96,6 +96,7 @@ fun PreferencesScreen(
                     onExplanationStyleChanged = viewModel::setExplanationStyle,
                     onReadingLevelChanged = viewModel::setReadingLevel,
                     onExampleTypeChanged = viewModel::setExampleType,
+                    modifier = Modifier.weight(1f),
                 )
 
                 HorizontalDivider()
@@ -169,7 +170,7 @@ private fun PreferencesContent(
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
