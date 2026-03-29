@@ -54,6 +54,15 @@ Placeholder steps:
 4. Build and deploy to device/emulator
 ```
 
+## Runtime Mode (Phase 1 Emulator/Mobile Validation)
+
+- Default wiring now attempts real runtime paths by default:
+	- `OnnxEmbeddingModel` for embedding
+	- `LlamaCppEngine` for LLM inference
+- If ONNX runtime/session is unavailable, embedding degrades to deterministic fallback vectors.
+- If llama native bindings are unavailable, generation returns an explicit runtime-unavailable message (no silent mock default).
+- `ExplanationEngine` emits runtime status signals so test runs can distinguish ONNX real path, ONNX fallback path, and llama native-unavailable path.
+
 ## Technology Decisions
 
 > **To be decided in Phase 0 spikes.** Key open questions:

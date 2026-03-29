@@ -119,6 +119,7 @@ class LlamaCppEngine : LlmEngine {
 
         if (!nativeLibAvailable) {
             // No native library — emit an informative placeholder
+            Log.w(TAG, "Llama native unavailable path active during generation")
             emit(
                 "The LLM model requires llama.cpp native bindings to generate " +
                     "real explanations. Please integrate the llama-android " +
@@ -170,6 +171,14 @@ class LlamaCppEngine : LlmEngine {
         } catch (e: Exception) {
             Log.w(TAG, "Error during LLM model unload", e)
             modelLoaded = false
+        }
+    }
+
+    override fun runtimeMode(): LlmRuntimeMode {
+        return if (nativeLibAvailable) {
+            LlmRuntimeMode.REAL_NATIVE
+        } else {
+            LlmRuntimeMode.NATIVE_UNAVAILABLE
         }
     }
 

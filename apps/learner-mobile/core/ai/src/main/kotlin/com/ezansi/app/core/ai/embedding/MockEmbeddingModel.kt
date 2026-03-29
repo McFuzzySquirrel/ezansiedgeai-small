@@ -70,6 +70,8 @@ class MockEmbeddingModel : EmbeddingModel {
         Log.i(TAG, "Mock embedding model unloaded")
     }
 
+    override fun runtimeMode(): EmbeddingRuntimeMode = EmbeddingRuntimeMode.MOCK
+
     private fun l2Normalise(vector: FloatArray): FloatArray {
         var sumSquares = 0.0f
         for (value in vector) {

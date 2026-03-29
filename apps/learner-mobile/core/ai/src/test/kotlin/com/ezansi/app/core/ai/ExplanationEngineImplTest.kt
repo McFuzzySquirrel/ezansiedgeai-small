@@ -1,7 +1,9 @@
 package com.ezansi.app.core.ai
 
 import com.ezansi.app.core.ai.embedding.EmbeddingModel
+import com.ezansi.app.core.ai.embedding.EmbeddingRuntimeMode
 import com.ezansi.app.core.ai.inference.LlmEngine
+import com.ezansi.app.core.ai.inference.LlmRuntimeMode
 import com.ezansi.app.core.ai.prompt.PromptBuilder
 import com.ezansi.app.core.ai.retrieval.ContentRetriever
 import com.ezansi.app.core.ai.retrieval.RetrievalResult
@@ -53,11 +55,13 @@ class ExplanationEngineImplTest {
     private class FakeEmbeddingModel : EmbeddingModel {
         private var loaded = false
         var embedResult = FloatArray(384) { 0.01f }
+        var mode: EmbeddingRuntimeMode = EmbeddingRuntimeMode.DETERMINISTIC_FALLBACK
 
         override suspend fun embed(text: String) = embedResult
         override suspend fun loadModel(modelPath: String) { loaded = true }
         override fun isLoaded() = loaded
         override fun unload() { loaded = false }
+        override fun runtimeMode(): EmbeddingRuntimeMode = mode
     }
 
     private class FakeContentRetriever : ContentRetriever {
@@ -74,6 +78,7 @@ class ExplanationEngineImplTest {
         private var loaded = false
         var responseTokens = listOf("Hello", " ", "world")
         var shouldFail = false
+        var mode: LlmRuntimeMode = LlmRuntimeMode.NATIVE_UNAVAILABLE
 
         override suspend fun loadModel(modelPath: String) { loaded = true }
         override fun isLoaded() = loaded
@@ -84,6 +89,7 @@ class ExplanationEngineImplTest {
             }
         }
         override fun unload() { loaded = false }
+        override fun runtimeMode(): LlmRuntimeMode = mode
     }
 
     private class FakeContentPackRepository : ContentPackRepository {
@@ -182,13 +188,18 @@ class ExplanationEngineImplTest {
                 RetrievalResult("chunk-1", 0.85f, testChunk),
             )
             llmEngine.responseTokens = listOf("Step", " ", "1")
+            embeddingModel.mode = EmbeddingRuntimeMode.REAL_ONNX
+            llmEngine.mode = LlmRuntimeMode.NATIVE_UNAVAILABLE
 
             val engine = createEngine()
             val results = engine.explain("What are fractions?", "profile-1").toList()
 
             assertTrue(results.size >= 4, "Expected at least 4 states, got ${results.size}")
             assertIs<ExplanationResult.Thinking>(results[0])
-            assertIs<ExplanationResult.Retrieving>(results[1])
+
+            val statuses = results.filterIsInstance<ExplanationResult.RuntimeStatus>()
+            assertTrue(statuses.isNotEmpty(), "Expected runtime status emissions")
+            assertTrue(results.any { it is ExplanationResult.Retrieving })
 
             // Find Generating and Complete states
             val generating = results.filterIsInstance<ExplanationResult.Generating>()
@@ -216,6 +227,62 @@ class ExplanationEngineImplTest {
             assertEquals("chunk-1", complete.sources[0].chunkId)
             assertEquals("maths-grade6-caps", complete.sources[0].packId)
             assertEquals(0.85f, complete.sources[0].relevanceScore)
+        }
+    }
+
+    @Nested
+    @DisplayName("Runtime status observability")
+    inner class RuntimeStatusTests {
+
+        @Test
+        @DisplayName("emits deterministic ONNX fallback and llama native unavailable status")
+        fun emitsFallbackAndNativeUnavailableStatus() = runTest(testDispatcher) {
+            contentPackRepo.packs = listOf(testPackMetadata)
+            contentRetriever.results = listOf(
+                RetrievalResult("chunk-1", 0.85f, testChunk),
+            )
+            embeddingModel.mode = EmbeddingRuntimeMode.DETERMINISTIC_FALLBACK
+            llmEngine.mode = LlmRuntimeMode.NATIVE_UNAVAILABLE
+
+            val engine = createEngine()
+            val results = engine.explain("What are fractions?", "profile-1").toList()
+            val statusMessages = results.filterIsInstance<ExplanationResult.RuntimeStatus>()
+
+            assertTrue(statusMessages.isNotEmpty(), "Expected runtime status emissions")
+            assertTrue(
+                statusMessages.any {
+                    it.message.contains("ONNX fallback deterministic embedding path")
+                },
+                "Expected ONNX fallback status in message",
+            )
+            assertTrue(
+                statusMessages.any {
+                    it.message.contains("Llama native unavailable path")
+                },
+                "Expected llama native unavailable status in message",
+            )
+        }
+
+        @Test
+        @DisplayName("emits real ONNX status when runtime mode indicates ONNX path")
+        fun emitsRealOnnxStatus() = runTest(testDispatcher) {
+            contentPackRepo.packs = listOf(testPackMetadata)
+            contentRetriever.results = listOf(
+                RetrievalResult("chunk-1", 0.85f, testChunk),
+            )
+            embeddingModel.mode = EmbeddingRuntimeMode.REAL_ONNX
+            llmEngine.mode = LlmRuntimeMode.NATIVE_UNAVAILABLE
+
+            val engine = createEngine()
+            val results = engine.explain("What are fractions?", "profile-1").toList()
+            val statusMessages = results.filterIsInstance<ExplanationResult.RuntimeStatus>()
+
+            assertTrue(
+                statusMessages.any {
+                    it.message.contains("Real ONNX path active")
+                },
+                "Expected real ONNX runtime status in message",
+            )
         }
     }
 

@@ -171,6 +171,11 @@ class ChatViewModel(
                             updatePipelineState(messageId, PipelineState.RETRIEVING)
                         }
 
+                        is ExplanationResult.RuntimeStatus -> {
+                            // Runtime status is for observability during validation runs.
+                            // No chat UI state change is required.
+                        }
+
                         is ExplanationResult.Generating -> {
                             updateLastMessage(messageId) { msg ->
                                 msg.copy(

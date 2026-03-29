@@ -85,6 +85,8 @@ class MockLlmEngine : LlmEngine {
         loaded = false
         Log.i(TAG, "Mock LLM engine unloaded")
     }
+
+    override fun runtimeMode(): LlmRuntimeMode = LlmRuntimeMode.MOCK
 }
 
 /**

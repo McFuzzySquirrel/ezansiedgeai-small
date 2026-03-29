@@ -2,7 +2,9 @@ package com.ezansi.app.core.ai
 
 import android.util.Log
 import com.ezansi.app.core.ai.embedding.EmbeddingModel
+import com.ezansi.app.core.ai.embedding.EmbeddingRuntimeMode
 import com.ezansi.app.core.ai.inference.LlmEngine
+import com.ezansi.app.core.ai.inference.LlmRuntimeMode
 import com.ezansi.app.core.ai.prompt.PromptBuilder
 import com.ezansi.app.core.ai.retrieval.ContentRetriever
 import com.ezansi.app.core.ai.retrieval.RetrievalResult
@@ -135,6 +137,7 @@ class ExplanationEngineImpl(
         Log.i(TAG, "Pipeline started for question (${question.length} chars)")
 
         ensureEmbeddingModelLoaded()
+        emitRuntimeStatus(collector)
 
         // ── Stage 2: Embed & Retrieve ───────────────────────────────
         collector.emit(ExplanationResult.Retrieving)
@@ -161,6 +164,7 @@ class ExplanationEngineImpl(
         // Sequential model loading (AI-08): free embedding RAM before loading LLM
         unloadEmbeddingModelIfLlmNotLoaded()
         ensureLlmModelLoaded()
+        emitRuntimeStatus(collector)
 
         // ── Stage 4: Build prompt with learner preferences ──────────
         val preferences = loadPreferencesForProfile(profileId)
@@ -200,6 +204,45 @@ class ExplanationEngineImpl(
             ExplanationResult.Complete(
                 fullText = fullResponse.toString(),
                 sources = sources,
+            ),
+        )
+    }
+
+    private suspend fun emitRuntimeStatus(
+        collector: kotlinx.coroutines.flow.FlowCollector<ExplanationResult>,
+    ) {
+        val embeddingMode = embeddingModel.runtimeMode()
+        val llmMode = llmEngine.runtimeMode()
+
+        val embeddingMessage = when (embeddingMode) {
+            EmbeddingRuntimeMode.REAL_ONNX -> "Real ONNX path active"
+            EmbeddingRuntimeMode.DETERMINISTIC_FALLBACK -> "ONNX fallback deterministic embedding path"
+            EmbeddingRuntimeMode.MOCK -> "Mock embedding path active"
+            EmbeddingRuntimeMode.UNKNOWN -> "Embedding runtime mode unknown"
+        }
+
+        val llmMessage = when (llmMode) {
+            LlmRuntimeMode.REAL_NATIVE -> "Llama native runtime path active"
+            LlmRuntimeMode.NATIVE_UNAVAILABLE -> "Llama native unavailable path"
+            LlmRuntimeMode.MOCK -> "Mock LLM path active"
+            LlmRuntimeMode.UNKNOWN -> "LLM runtime mode unknown"
+        }
+
+        val message = "$embeddingMessage; $llmMessage"
+
+        if (embeddingMode == EmbeddingRuntimeMode.DETERMINISTIC_FALLBACK ||
+            llmMode == LlmRuntimeMode.NATIVE_UNAVAILABLE
+        ) {
+            Log.w(TAG, message)
+        } else {
+            Log.i(TAG, message)
+        }
+
+        collector.emit(
+            ExplanationResult.RuntimeStatus(
+                embeddingMode = embeddingMode,
+                llmMode = llmMode,
+                message = message,
             ),
         )
     }

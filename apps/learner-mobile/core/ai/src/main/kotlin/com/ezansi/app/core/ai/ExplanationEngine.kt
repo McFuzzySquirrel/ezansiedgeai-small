@@ -1,5 +1,7 @@
 package com.ezansi.app.core.ai
 
+import com.ezansi.app.core.ai.embedding.EmbeddingRuntimeMode
+import com.ezansi.app.core.ai.inference.LlmRuntimeMode
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -52,6 +54,15 @@ sealed class ExplanationResult {
 
     /** Embedding the question and searching content packs for relevant chunks. */
     data object Retrieving : ExplanationResult()
+
+    /**
+     * Runtime mode signal for observability in emulator/mobile validation.
+     */
+    data class RuntimeStatus(
+        val embeddingMode: EmbeddingRuntimeMode,
+        val llmMode: LlmRuntimeMode,
+        val message: String,
+    ) : ExplanationResult()
 
     /**
      * LLM is generating text. Emitted multiple times as tokens stream in.
