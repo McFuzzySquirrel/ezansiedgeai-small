@@ -82,8 +82,10 @@ class ExplanationEngineImpl(
         /** Maximum tokens for LLM generation per response (AI-04). */
         private const val MAX_GENERATION_TOKENS = 548
 
-        /** Wall-time cap for the entire pipeline in milliseconds (AI-09). */
-        private const val PIPELINE_TIMEOUT_MS = 30_000L
+        /** Wall-time cap for the entire pipeline in milliseconds (AI-09).
+         *  Budget: model load (~2s) + embed/retrieve (~1s) + prompt eval (~50s on
+         *  mid-range ARM) + generation (~30s) ≈ 83s. 120s gives headroom. */
+        private const val PIPELINE_TIMEOUT_MS = 120_000L
 
         /** Minimum similarity score for a chunk to be considered relevant. */
         private const val MIN_RELEVANCE_THRESHOLD = 0.05f

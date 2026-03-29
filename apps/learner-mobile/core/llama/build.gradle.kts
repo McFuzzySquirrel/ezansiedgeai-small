@@ -27,8 +27,13 @@ android {
                     "-DLLAMA_BUILD_TOOLS=OFF",
                     "-DGGML_OPENMP=OFF",
                     "-DBUILD_SHARED_LIBS=ON",
+                    // Force Release-level optimisation even for debug APKs.
+                    // Without this, assembleDebug uses -O0 which makes
+                    // llama.cpp prompt eval ~10x slower.
+                    "-DCMAKE_C_FLAGS_DEBUG=-O3 -DNDEBUG",
+                    "-DCMAKE_CXX_FLAGS_DEBUG=-O3 -DNDEBUG",
                 )
-                cppFlags += listOf("-std=c++17")
+                cppFlags += listOf("-std=c++17", "-O3")
             }
         }
     }

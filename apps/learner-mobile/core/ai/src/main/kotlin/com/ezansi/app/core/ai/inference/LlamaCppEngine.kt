@@ -52,7 +52,7 @@ class LlamaCppEngine : LlmEngine {
         private const val TOP_K = 40
 
         /** Wall-time cap for the generation phase (AI-09). */
-        private const val GENERATION_TIMEOUT_MS = 30_000L
+        private const val GENERATION_TIMEOUT_MS = 90_000L
     }
 
     private val llama = LlamaAndroid()
