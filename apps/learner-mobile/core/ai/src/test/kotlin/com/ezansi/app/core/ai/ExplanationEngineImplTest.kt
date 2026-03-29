@@ -337,9 +337,9 @@ class ExplanationEngineImplTest {
         @DisplayName("emits Error with low-score results below threshold")
         fun lowScoreResultsFilteredOut() = runTest(testDispatcher) {
             contentPackRepo.packs = listOf(testPackMetadata)
-            // All results below the 0.1 threshold
+            // All results below the 0.05 threshold
             contentRetriever.results = listOf(
-                RetrievalResult("chunk-1", 0.05f, testChunk.copy(relevanceScore = 0.05f)),
+                RetrievalResult("chunk-1", 0.01f, testChunk.copy(relevanceScore = 0.01f)),
             )
 
             val engine = createEngine()

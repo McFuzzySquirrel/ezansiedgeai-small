@@ -56,6 +56,8 @@ private const val INFERENCE_TIMEOUT_MS = 30_000L
  */
 private const val ERROR_TIMEOUT = "This is taking longer than expected. Please wait\u2026"
 private const val ERROR_GENERIC = "Something went wrong. Please try again."
+private const val ERROR_NO_ACTIVE_PROFILE = "Please select or create a learner profile first."
+private const val RETRIEVAL_MISS_PREFIX = "I couldn't find relevant content"
 
 /**
  * ViewModel for the chat screen — the primary interaction surface.
@@ -103,7 +105,39 @@ class ChatViewModel(
         val question = _uiState.value.inputText.trim()
         if (question.isBlank()) return
 
-        val profileId = _uiState.value.activeProfileId ?: return
+        val profileId = _uiState.value.activeProfileId
+        if (profileId == null) {
+            // Recover from stale in-memory state: profile may have been created or
+            // switched on another screen while this ViewModel stayed alive.
+            viewModelScope.launch {
+                when (val result = profileRepository.getActiveProfile()) {
+                    is EzansiResult.Success -> {
+                        val refreshedProfile = result.data
+                        if (refreshedProfile != null) {
+                            _uiState.update {
+                                it.copy(
+                                    activeProfileId = refreshedProfile.id,
+                                    activeProfileName = refreshedProfile.name,
+                                    errorMessage = null,
+                                )
+                            }
+                            onSendMessage()
+                        } else {
+                            _uiState.update { it.copy(errorMessage = ERROR_NO_ACTIVE_PROFILE) }
+                        }
+                    }
+                    is EzansiResult.Error -> {
+                        _uiState.update {
+                            it.copy(errorMessage = result.message.ifBlank { ERROR_NO_ACTIVE_PROFILE })
+                        }
+                    }
+                    is EzansiResult.Loading -> {
+                        _uiState.update { it.copy(errorMessage = ERROR_NO_ACTIVE_PROFILE) }
+                    }
+                }
+            }
+            return
+        }
 
         val messageId = UUID.randomUUID().toString()
         val timestamp = System.currentTimeMillis()
@@ -224,19 +258,40 @@ class ChatViewModel(
 
                         is ExplanationResult.Error -> {
                             timeoutJob?.cancel()
-                            updateLastMessage(messageId) { msg ->
-                                msg.copy(
-                                    answer = null,
-                                    isLoading = false,
-                                    pipelineState = PipelineState.ERROR,
-                                )
-                            }
-                            _uiState.update {
-                                it.copy(
-                                    isGenerating = false,
-                                    pipelineState = PipelineState.ERROR,
-                                    errorMessage = result.message,
-                                )
+                            val isRetrievalMiss = result.message.startsWith(RETRIEVAL_MISS_PREFIX)
+
+                            if (isRetrievalMiss) {
+                                // Show retrieval miss as a regular assistant message to avoid
+                                // stacking message-level error plus global error banner.
+                                updateLastMessage(messageId) { msg ->
+                                    msg.copy(
+                                        answer = result.message,
+                                        isLoading = false,
+                                        pipelineState = null,
+                                    )
+                                }
+                                _uiState.update {
+                                    it.copy(
+                                        isGenerating = false,
+                                        pipelineState = null,
+                                        errorMessage = null,
+                                    )
+                                }
+                            } else {
+                                updateLastMessage(messageId) { msg ->
+                                    msg.copy(
+                                        answer = null,
+                                        isLoading = false,
+                                        pipelineState = PipelineState.ERROR,
+                                    )
+                                }
+                                _uiState.update {
+                                    it.copy(
+                                        isGenerating = false,
+                                        pipelineState = PipelineState.ERROR,
+                                        errorMessage = result.message,
+                                    )
+                                }
                             }
                         }
                     }

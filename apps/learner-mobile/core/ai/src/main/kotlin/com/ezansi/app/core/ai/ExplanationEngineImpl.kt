@@ -86,7 +86,7 @@ class ExplanationEngineImpl(
         private const val PIPELINE_TIMEOUT_MS = 30_000L
 
         /** Minimum similarity score for a chunk to be considered relevant. */
-        private const val MIN_RELEVANCE_THRESHOLD = 0.1f
+        private const val MIN_RELEVANCE_THRESHOLD = 0.05f
 
         /** Expected embedding model filename in the models directory. */
         private const val EMBEDDING_MODEL_FILENAME = "all-MiniLM-L6-v2.onnx"

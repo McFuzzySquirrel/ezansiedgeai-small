@@ -324,7 +324,7 @@ class ChatViewModelTest {
         }
 
         @Test
-        @DisplayName("no send without active profile")
+        @DisplayName("no send without active profile and shows error")
         fun noSendWithoutProfile() {
             val vm = createViewModel()
             vm.onInputChanged("Hello")
@@ -332,6 +332,40 @@ class ChatViewModelTest {
 
             // No profile → no message sent
             assertTrue(vm.uiState.value.messages.isEmpty())
+            assertEquals(
+                "Please select or create a learner profile first.",
+                vm.uiState.value.errorMessage,
+            )
+        }
+
+        @Test
+        @DisplayName("recovers stale profile state by reloading active profile on send")
+        fun recoversStaleProfileStateOnSend() {
+            val engine = FakeExplanationEngine()
+            val chatRepo = FakeChatHistoryRepository()
+            val profileRepo = FakeProfileRepository()
+            val contentPackRepo = FakeContentPackRepository().apply {
+                packs = listOf(
+                    PackMetadata("p1", "Test", "1.0", "Math", "6", "CAPS", 100, 10, "en"),
+                )
+            }
+
+            val vm = ChatViewModel(
+                explanationEngine = engine,
+                chatHistoryRepository = chatRepo,
+                profileRepository = profileRepo,
+                contentPackRepository = contentPackRepo,
+            )
+
+            // Simulate profile being created/switched after ChatViewModel init.
+            profileRepo.activeProfile = LearnerProfile("profile-1", "Thandi", 0, 0)
+
+            vm.onInputChanged("What are fractions?")
+            vm.onSendMessage()
+
+            assertEquals(1, vm.uiState.value.messages.size)
+            assertNull(vm.uiState.value.errorMessage)
+            assertEquals("profile-1", vm.uiState.value.activeProfileId)
         }
     }
 
@@ -340,6 +374,31 @@ class ChatViewModelTest {
     @Nested
     @DisplayName("Error handling")
     inner class ErrorHandlingTests {
+
+        @Test
+        @DisplayName("retrieval miss is shown inline and does not trigger global error banner")
+        fun retrievalMissShownInline() {
+            val engine = FakeExplanationEngine().apply {
+                results = listOf(
+                    ExplanationResult.Thinking,
+                    ExplanationResult.Error(
+                        "I couldn't find relevant content for that question. Try asking about a specific Grade 6 Maths topic.",
+                    ),
+                )
+            }
+
+            val (vm, _) = createViewModelWithProfile(explanationEngine = engine)
+            vm.onInputChanged("How do I compare fractions?")
+            vm.onSendMessage()
+
+            val state = vm.uiState.value
+            assertNull(state.errorMessage)
+            assertEquals(1, state.messages.size)
+            assertEquals(
+                "I couldn't find relevant content for that question. Try asking about a specific Grade 6 Maths topic.",
+                state.messages.first().answer,
+            )
+        }
 
         @Test
         @DisplayName("pipeline error sets error message")
