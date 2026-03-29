@@ -1,0 +1,239 @@
+{
+  "description": "Grade 6 Mathematics CAPS all-terms seed pack (Terms 1-4). Covers core strands with concept, procedure, misconception, and worked-example style chunks for offline retrieval testing.",
+  "version": "1.0.0",
+  "pack_id": "maths-grade6-caps-all-terms-v1.0",
+  "subject": "mathematics",
+  "grade": "6",
+  "language": "en",
+  "curriculum": "CAPS",
+  "source": "CAPS Mathematics Grades 4-6 policy guidance and Grade 6 topic progression",
+  "chunks": [
+    {
+      "id": "t1-whole-numbers-place-value-001",
+      "topic_path": "term1.numbers.whole_numbers.place_value",
+      "title": "Place value up to millions",
+      "content": "Place value tells us what each digit is worth in a number. In 4 582 917, the 4 is in the millions place, the 5 is in the hundred-thousands place, and the 9 is in the hundreds place. To read large numbers correctly, group digits in threes from the right: ones, thousands, millions. Expanded form helps check understanding: 4 582 917 = 4 000 000 + 500 000 + 80 000 + 2 000 + 900 + 10 + 7. When comparing two large numbers, start from the leftmost place value and move right until digits differ.",
+      "difficulty": "basic",
+      "term": 1
+    },
+    {
+      "id": "t1-whole-numbers-factors-multiples-001",
+      "topic_path": "term1.numbers.whole_numbers.factors_multiples",
+      "title": "Factors, multiples, and divisibility",
+      "content": "A factor divides a number exactly. A multiple is the result of multiplying a number by whole numbers. Example: factors of 24 are 1, 2, 3, 4, 6, 8, 12, 24. Multiples of 6 are 6, 12, 18, 24, 30, and so on. Divisibility rules help quickly: divisible by 2 if last digit is even; by 3 if digit sum is divisible by 3; by 5 if number ends in 0 or 5; by 10 if number ends in 0. The highest common factor (HCF) and lowest common multiple (LCM) are useful in fractions and ratio problems.",
+      "difficulty": "basic",
+      "term": 1
+    },
+    {
+      "id": "t1-fractions-concept-001",
+      "topic_path": "term1.fractions.common_fractions.concept",
+      "title": "What a fraction means",
+      "content": "A fraction shows part of a whole. The top number is the numerator and the bottom number is the denominator. In 3/5, the whole is divided into 5 equal parts and 3 parts are chosen. Proper fractions are less than one whole, while improper fractions are one whole or more. Mixed numbers combine a whole number and a fraction, for example 2 1/4. Fractions must describe equal parts. If parts are not equal, the diagram does not represent a correct fraction.",
+      "difficulty": "basic",
+      "term": 1
+    },
+    {
+      "id": "t1-fractions-equivalent-001",
+      "topic_path": "term1.fractions.common_fractions.equivalent",
+      "title": "Equivalent and simplified fractions",
+      "content": "Equivalent fractions have the same value but different numerators and denominators. You create equivalent fractions by multiplying or dividing numerator and denominator by the same non-zero number. Example: 2/3 = 4/6 = 8/12. Simplifying means writing a fraction in lowest terms by dividing numerator and denominator by their highest common factor. Example: 18/24 simplifies to 3/4 because HCF(18,24)=6. A good check is cross multiplication: a/b and c/d are equivalent when a x d = b x c.",
+      "difficulty": "basic",
+      "term": 1
+    },
+    {
+      "id": "t1-fractions-add-unlike-001",
+      "topic_path": "term1.fractions.common_fractions.addition_unlike",
+      "title": "Add and subtract unlike fractions",
+      "content": "To add or subtract unlike fractions, find a common denominator first. Use the least common multiple of denominators. Example: 2/5 + 1/3. LCM of 5 and 3 is 15, so 2/5 = 6/15 and 1/3 = 5/15. Then add: 6/15 + 5/15 = 11/15. For subtraction, same process: 3/4 - 1/6. LCM is 12. Convert to 9/12 and 2/12. Subtract to get 7/12. Always simplify final answers when possible.",
+      "difficulty": "intermediate",
+      "term": 1
+    },
+    {
+      "id": "t1-fractions-misconception-001",
+      "topic_path": "term1.fractions.common_fractions.misconceptions",
+      "title": "Common fraction mistakes and fixes",
+      "content": "Mistake 1: Adding denominators directly, for example 1/2 + 1/3 = 2/5. This is wrong. Denominators must first be made equal. Mistake 2: Thinking bigger denominator means bigger fraction. Actually, with same numerator, bigger denominator means smaller parts. So 1/8 is smaller than 1/4. Mistake 3: Forgetting to simplify. 8/12 is correct but not in simplest form; 2/3 is preferred. Mistake 4: Using unequal parts in diagrams. Fractions describe equal partitions only.",
+      "difficulty": "intermediate",
+      "term": 1
+    },
+    {
+      "id": "t1-fractions-worked-example-001",
+      "topic_path": "term1.fractions.common_fractions.worked_examples",
+      "title": "Worked example: sharing fruit equally",
+      "content": "Problem: A class has 30 oranges. Three fifths are shared at break. How many oranges are shared? Step 1: Write the operation: 3/5 of 30. Step 2: Find one fifth: 30 divided by 5 = 6. Step 3: Find three fifths: 6 x 3 = 18. Step 4: Check reasonableness: half of 30 is 15, and three fifths should be a little more than half, so 18 is sensible. Final answer: 18 oranges are shared.",
+      "difficulty": "basic",
+      "term": 1
+    },
+
+    {
+      "id": "t2-decimals-place-value-001",
+      "topic_path": "term2.decimals.place_value",
+      "title": "Decimal place value to thousandths",
+      "content": "Decimals use a point to separate whole numbers from parts of a whole. The first place after the decimal is tenths, then hundredths, then thousandths. In 4.375, 3 means three tenths, 7 means seven hundredths, and 5 means five thousandths. You can read it as four and three hundred seventy-five thousandths. Place value helps when ordering decimals. Compare whole number parts first, then tenths, then hundredths, and so on.",
+      "difficulty": "basic",
+      "term": 2
+    },
+    {
+      "id": "t2-decimals-fractions-conversion-001",
+      "topic_path": "term2.decimals.conversion",
+      "title": "Convert common fractions and decimals",
+      "content": "Fractions and decimals can represent the same value. Examples: 1/2 = 0.5, 1/4 = 0.25, 3/4 = 0.75, 1/10 = 0.1. To convert a fraction to decimal, divide numerator by denominator. To convert decimal to fraction, write the decimal over a power of ten and simplify. Example: 0.6 = 6/10 = 3/5. Example: 0.125 = 125/1000 = 1/8. Conversions are important for percentages, money, and measurement.",
+      "difficulty": "intermediate",
+      "term": 2
+    },
+    {
+      "id": "t2-decimals-operations-001",
+      "topic_path": "term2.decimals.operations",
+      "title": "Add and subtract decimals",
+      "content": "When adding or subtracting decimals, line up decimal points vertically. Add zeros where needed so place values match. Example: 4.5 + 0.37 = 4.50 + 0.37 = 4.87. Example: 9.2 - 3.48 = 9.20 - 3.48 = 5.72. For multiplication by 10, 100, 1000, move the decimal point right by 1, 2, 3 places. For division by 10, 100, 1000, move left by 1, 2, 3 places.",
+      "difficulty": "intermediate",
+      "term": 2
+    },
+    {
+      "id": "t2-percentages-concept-001",
+      "topic_path": "term2.percentages.concept",
+      "title": "Percent means out of 100",
+      "content": "A percentage is a fraction with denominator 100. The symbol percent means out of one hundred. So 25 percent = 25/100 = 1/4, and 60 percent = 60/100 = 3/5. To find a percentage of an amount, convert the percent to a fraction or decimal, then multiply. Example: 20 percent of 150 = 0.20 x 150 = 30. Percentages are used in test marks, discounts, and surveys.",
+      "difficulty": "basic",
+      "term": 2
+    },
+    {
+      "id": "t2-percentages-worked-example-001",
+      "topic_path": "term2.percentages.worked_examples",
+      "title": "Worked example: discount at a tuck shop",
+      "content": "Problem: A school bag costs R240. There is a 15 percent discount. What is the discount amount and new price? Step 1: Find 15 percent of 240. 15 percent = 15/100 = 0.15. Step 2: 0.15 x 240 = 36. Discount is R36. Step 3: New price = 240 - 36 = 204. Step 4: Quick check: 10 percent is 24 and 5 percent is 12, total 36, correct. Final answer: discount R36, new price R204.",
+      "difficulty": "intermediate",
+      "term": 2
+    },
+    {
+      "id": "t2-patterns-numeric-001",
+      "topic_path": "term2.patterns.numeric_patterns",
+      "title": "Number patterns and rules",
+      "content": "A numeric pattern follows a rule. You can describe rules in words, tables, or simple expressions. Example pattern: 3, 7, 11, 15. Rule: add 4 each time. Another pattern: 2, 6, 18, 54. Rule: multiply by 3 each time. To find missing terms, apply the same rule consistently. For input-output tables, identify how output depends on input. Example: if input 1 gives output 5, input 2 gives output 8, input 3 gives output 11, then rule is output = 3 x input + 2.",
+      "difficulty": "basic",
+      "term": 2
+    },
+    {
+      "id": "t2-patterns-misconception-001",
+      "topic_path": "term2.patterns.misconceptions",
+      "title": "Pattern mistakes to avoid",
+      "content": "A common mistake is assuming every pattern uses addition. Some patterns multiply, alternate, or combine operations. Another mistake is changing the rule halfway to make numbers fit. A valid pattern has one consistent rule for the whole sequence unless the question says alternating rules. In table problems, learners may compare only consecutive outputs and ignore input relationship. Always test your rule on at least three known terms before predicting unknown terms.",
+      "difficulty": "intermediate",
+      "term": 2
+    },
+
+    {
+      "id": "t3-geometry-2d-properties-001",
+      "topic_path": "term3.space_shape.2d_shapes.properties",
+      "title": "Properties of 2D shapes",
+      "content": "Two-dimensional shapes are flat and have length and width only. Important properties include sides, angles, and parallel lines. A triangle has 3 sides, a quadrilateral has 4 sides. A rectangle has opposite sides equal and four right angles. A square has four equal sides and four right angles. A parallelogram has opposite sides parallel and equal. Understanding properties helps learners classify shapes correctly and solve perimeter and area problems.",
+      "difficulty": "basic",
+      "term": 3
+    },
+    {
+      "id": "t3-geometry-3d-objects-001",
+      "topic_path": "term3.space_shape.3d_objects",
+      "title": "3D objects: faces, edges, and vertices",
+      "content": "Three-dimensional objects have length, width, and height. A cube has 6 faces, 12 edges, and 8 vertices. A rectangular prism also has 6 faces, 12 edges, and 8 vertices, but faces may have different sizes. A pyramid has a base and triangular faces meeting at one vertex. A cylinder has 2 circular faces and 1 curved surface. A cone has 1 circular base and 1 vertex. Use real objects in class, like boxes and cans, to connect geometry to daily life.",
+      "difficulty": "basic",
+      "term": 3
+    },
+    {
+      "id": "t3-angles-concept-001",
+      "topic_path": "term3.space_shape.angles",
+      "title": "Types of angles and measurement",
+      "content": "An angle is the amount of turn between two lines meeting at a point. Acute angles are less than 90 degrees. A right angle is exactly 90 degrees. Obtuse angles are greater than 90 degrees but less than 180 degrees. A straight angle is 180 degrees. A full turn is 360 degrees. Use a protractor to measure angles: place the center on the vertex, align one arm with zero, then read where the other arm crosses the scale.",
+      "difficulty": "basic",
+      "term": 3
+    },
+    {
+      "id": "t3-measurement-perimeter-001",
+      "topic_path": "term3.measurement.perimeter",
+      "title": "Perimeter of rectangles and polygons",
+      "content": "Perimeter is the total distance around a shape. For a rectangle, perimeter = 2 x length + 2 x width. Example: if length is 8 cm and width is 5 cm, perimeter = 16 + 10 = 26 cm. For irregular polygons, add all side lengths. Always use the same unit and include it in the answer. Perimeter is useful for fencing, borders, and framing.",
+      "difficulty": "basic",
+      "term": 3
+    },
+    {
+      "id": "t3-measurement-area-001",
+      "topic_path": "term3.measurement.area",
+      "title": "Area of rectangles and squares",
+      "content": "Area is the space inside a 2D shape. For rectangles, area = length x width. For squares, area = side x side. Example: rectangle 9 m by 4 m has area 36 square metres. Area units are squared, such as cm2 or m2. If units differ, convert first. Example: 2 m and 50 cm should be converted to same unit before multiplying. Area is used for paint, flooring, and garden planning.",
+      "difficulty": "basic",
+      "term": 3
+    },
+    {
+      "id": "t3-measurement-conversions-001",
+      "topic_path": "term3.measurement.unit_conversions",
+      "title": "Convert length, mass, and capacity units",
+      "content": "Metric conversions use powers of ten. Length: 1 km = 1000 m, 1 m = 100 cm, 1 cm = 10 mm. Mass: 1 kg = 1000 g. Capacity: 1 l = 1000 ml. To convert to smaller units, multiply. To convert to larger units, divide. Example: 3.5 m = 350 cm. Example: 2750 ml = 2.75 l. Write conversion chains clearly to avoid errors.",
+      "difficulty": "intermediate",
+      "term": 3
+    },
+    {
+      "id": "t3-measurement-worked-example-001",
+      "topic_path": "term3.measurement.worked_examples",
+      "title": "Worked example: fencing a school garden",
+      "content": "Problem: A rectangular school garden is 12 m long and 7 m wide. Wire fence costs R45 per metre. How much does fencing cost? Step 1: Find perimeter: 2 x 12 + 2 x 7 = 24 + 14 = 38 m. Step 2: Multiply by price per metre: 38 x 45 = 1710. Step 3: Check estimate: 40 x 45 = 1800, so 1710 is reasonable. Final answer: total fencing cost is R1710.",
+      "difficulty": "intermediate",
+      "term": 3
+    },
+
+    {
+      "id": "t4-data-collection-001",
+      "topic_path": "term4.data_handling.collection",
+      "title": "Collecting and organizing data",
+      "content": "Data handling starts with a clear question, for example: Which fruit is most popular in Grade 6? Collect data using surveys, tallies, or simple counts. Organize results in a table before drawing graphs. Use clear category names and totals. Good data collection avoids bias: ask all learners the same question and record answers accurately.",
+      "difficulty": "basic",
+      "term": 4
+    },
+    {
+      "id": "t4-data-graphs-001",
+      "topic_path": "term4.data_handling.representation",
+      "title": "Bar graphs and line graphs",
+      "content": "Bar graphs compare categories such as sports or transport choices. Line graphs show change over time, such as temperature across a week. Every graph needs a title, labelled axes, and a suitable scale. Scales should be equal intervals. When reading graphs, check units and axes carefully before answering questions.",
+      "difficulty": "basic",
+      "term": 4
+    },
+    {
+      "id": "t4-data-interpretation-001",
+      "topic_path": "term4.data_handling.interpretation",
+      "title": "Interpreting data and drawing conclusions",
+      "content": "Interpreting data means explaining what the numbers show. Look for highest and lowest values, differences between categories, and trends. Avoid guessing causes unless evidence supports it. Example: if attendance drops on Friday, conclude that Friday had lower attendance, not why. Compare values using subtraction or percentages for clearer statements.",
+      "difficulty": "intermediate",
+      "term": 4
+    },
+    {
+      "id": "t4-probability-basics-001",
+      "topic_path": "term4.data_handling.probability",
+      "title": "Probability from impossible to certain",
+      "content": "Probability describes chance. An impossible event has probability 0. A certain event has probability 1. Events in between are uncertain. For equally likely outcomes, probability = favourable outcomes divided by total outcomes. Example: rolling an even number on a fair six-sided die has 3 favourable outcomes (2,4,6) out of 6, so probability is 3/6 = 1/2.",
+      "difficulty": "basic",
+      "term": 4
+    },
+    {
+      "id": "t4-ratio-rate-001",
+      "topic_path": "term4.numbers.ratio_rate",
+      "title": "Ratio and rate in simple contexts",
+      "content": "A ratio compares two quantities of the same kind. Example: boys to girls is 12:15, which simplifies to 4:5. A rate compares different units, such as kilometres per hour or rand per kilogram. Keep order in ratios consistent and simplify by dividing both terms by the same factor. Ratio and rate help in recipes, maps, and shopping comparisons.",
+      "difficulty": "intermediate",
+      "term": 4
+    },
+    {
+      "id": "t4-data-worked-example-001",
+      "topic_path": "term4.data_handling.worked_examples",
+      "title": "Worked example: reading a bar graph",
+      "content": "Problem: A bar graph shows books read by four classes: 6A=18, 6B=22, 6C=14, 6D=26. Question 1: Which class read the most? 6D with 26. Question 2: How many more books did 6B read than 6C? 22 - 14 = 8. Question 3: Total books? 18 + 22 + 14 + 26 = 80. Always read exact values from the axis scale before calculating.",
+      "difficulty": "basic",
+      "term": 4
+    },
+    {
+      "id": "t4-probability-misconception-001",
+      "topic_path": "term4.data_handling.probability.misconceptions",
+      "title": "Probability misconceptions",
+      "content": "Common mistake: believing past outcomes change future outcomes in independent events. Example: if a fair coin landed heads three times, tails is not guaranteed next. Probability stays 1/2 each toss. Another mistake is counting outcomes incorrectly, such as forgetting one face on a die. Always list the sample space clearly and confirm outcomes are equally likely before using simple probability formulas.",
+      "difficulty": "intermediate",
+      "term": 4
+    }
+  ]
+}

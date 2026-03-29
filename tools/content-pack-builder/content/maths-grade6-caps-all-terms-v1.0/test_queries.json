@@ -1,0 +1,119 @@
+{
+  "description": "Retrieval validation queries for maths-grade6-caps-all-terms-v1.0.",
+  "version": "1.0.0",
+  "pack_id": "maths-grade6-caps-all-terms-v1.0",
+  "queries": [
+    {
+      "id": "q01",
+      "question": "How do place values work in a number like 4 582 917?",
+      "expected_chunk_ids": ["t1-whole-numbers-place-value-001"],
+      "difficulty": "basic",
+      "topic_area": "whole_numbers"
+    },
+    {
+      "id": "q02",
+      "question": "What is the difference between factors and multiples?",
+      "expected_chunk_ids": ["t1-whole-numbers-factors-multiples-001"],
+      "difficulty": "basic",
+      "topic_area": "whole_numbers"
+    },
+    {
+      "id": "q03",
+      "question": "How do I simplify and find equivalent fractions?",
+      "expected_chunk_ids": ["t1-fractions-equivalent-001", "t1-fractions-concept-001"],
+      "difficulty": "basic",
+      "topic_area": "fractions"
+    },
+    {
+      "id": "q04",
+      "question": "How do I add 2/5 and 1/3?",
+      "expected_chunk_ids": ["t1-fractions-add-unlike-001"],
+      "difficulty": "intermediate",
+      "topic_area": "fractions"
+    },
+    {
+      "id": "q05",
+      "question": "What are common mistakes learners make with fractions?",
+      "expected_chunk_ids": ["t1-fractions-misconception-001"],
+      "difficulty": "intermediate",
+      "topic_area": "fractions"
+    },
+    {
+      "id": "q06",
+      "question": "How do decimals work up to thousandths?",
+      "expected_chunk_ids": ["t2-decimals-place-value-001"],
+      "difficulty": "basic",
+      "topic_area": "decimals"
+    },
+    {
+      "id": "q07",
+      "question": "Convert 0.125 to a fraction.",
+      "expected_chunk_ids": ["t2-decimals-fractions-conversion-001"],
+      "difficulty": "intermediate",
+      "topic_area": "decimals"
+    },
+    {
+      "id": "q08",
+      "question": "How do I calculate a 15 percent discount on R240?",
+      "expected_chunk_ids": ["t2-percentages-worked-example-001", "t2-percentages-concept-001"],
+      "difficulty": "intermediate",
+      "topic_area": "percentages"
+    },
+    {
+      "id": "q09",
+      "question": "How can I find the rule in a numeric pattern?",
+      "expected_chunk_ids": ["t2-patterns-numeric-001", "t2-patterns-misconception-001"],
+      "difficulty": "basic",
+      "topic_area": "patterns"
+    },
+    {
+      "id": "q10",
+      "question": "What are the properties of rectangles and squares?",
+      "expected_chunk_ids": ["t3-geometry-2d-properties-001"],
+      "difficulty": "basic",
+      "topic_area": "geometry"
+    },
+    {
+      "id": "q11",
+      "question": "How do I calculate perimeter and area?",
+      "expected_chunk_ids": ["t3-measurement-perimeter-001", "t3-measurement-area-001"],
+      "difficulty": "basic",
+      "topic_area": "measurement"
+    },
+    {
+      "id": "q12",
+      "question": "How do I convert metres, centimetres, kilograms, and litres?",
+      "expected_chunk_ids": ["t3-measurement-conversions-001"],
+      "difficulty": "intermediate",
+      "topic_area": "measurement"
+    },
+    {
+      "id": "q13",
+      "question": "How do I work out the cost of fencing a rectangular garden?",
+      "expected_chunk_ids": ["t3-measurement-worked-example-001", "t3-measurement-perimeter-001"],
+      "difficulty": "intermediate",
+      "topic_area": "measurement"
+    },
+    {
+      "id": "q14",
+      "question": "What must every bar graph include?",
+      "expected_chunk_ids": ["t4-data-graphs-001", "t4-data-collection-001"],
+      "difficulty": "basic",
+      "topic_area": "data_handling"
+    },
+    {
+      "id": "q15",
+      "question": "Explain probability for rolling an even number on a die.",
+      "expected_chunk_ids": ["t4-probability-basics-001", "t4-probability-misconception-001"],
+      "difficulty": "basic",
+      "topic_area": "probability"
+    },
+    {
+      "id": "q16",
+      "question": "How do I interpret a bar graph and compare classes?",
+      "expected_chunk_ids": ["t4-data-worked-example-001", "t4-data-interpretation-001"],
+      "difficulty": "basic",
+      "topic_area": "data_handling"
+    }
+  ]
+}
