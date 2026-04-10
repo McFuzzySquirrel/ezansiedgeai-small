@@ -150,7 +150,7 @@ cd apps/learner-mobile
 ./gradlew test
 ```
 
-The test suite covers the AI pipeline, template engine, data encryption, content pack loading, and UI view models (285 tests across 16 files).
+The test suite covers the AI pipeline, template engine, data encryption, content pack loading, semantic search, and UI view models (445 tests across 9 modules).
 
 ### Build a Content Pack
 
@@ -187,7 +187,7 @@ python scripts/pipeline.py
 |-------|-------|--------|
 | **Phase 0** — Feasibility | LLM spike, embedding spike, storage budget, sample content pack, E2E pipeline | **Complete** |
 | **Phase 1** — Offline Learning Loop | Android app, AI pipeline, chat UI, topic browser, content pack loader, profiles, onboarding | **Complete** |
-| **Feature** — Gemma 4 Migration | Unified model (gen + embed), GPU delegation, content pack v2, semantic search | **F4 Complete** |
+| **Feature** — Gemma 4 Migration | Unified model (gen + embed), GPU delegation, content pack v2, semantic search | **Complete** (device validation pending) |
 | **Phase 2** — Content & Personalisation | Full Grade 6 Maths CAPS pack, preference engine, delta updates, feedback system | Not started |
 | **Phase 3** — School Edge Node | LAN discovery, content sync, edge server | Not started |
 
@@ -273,12 +273,15 @@ Key decisions are documented as Architecture Decision Records:
 |-----|----------|
 | [0003](ejs-docs/adr/0003-retrieval-first-architecture.md) | Retrieval-first architecture over general-purpose generation |
 | [0004](ejs-docs/adr/0004-content-pack-as-unit-of-knowledge.md) | Content packs as the unit of knowledge distribution |
-| [0006](ejs-docs/adr/0006-qwen25-1.5b-as-on-device-llm.md) | Qwen2.5-1.5B as on-device LLM *(superseded by Gemma 4 — see [Feature PRD](docs/product/feature-gemma4-semantic-search.md))* |
-| [0007](ejs-docs/adr/0007-embedding-model-vector-store-storage-budget.md) | all-MiniLM-L6-v2 + FAISS for embedding and retrieval *(embedding superseded by Gemma 4 unified model)* |
+| [0006](ejs-docs/adr/0006-qwen25-1.5b-as-on-device-llm.md) | Qwen2.5-1.5B as on-device LLM *(superseded by ADR-0012)* |
+| [0007](ejs-docs/adr/0007-embedding-model-vector-store-storage-budget.md) | all-MiniLM-L6-v2 + FAISS for embedding and retrieval *(superseded by ADR-0012)* |
 | [0008](ejs-docs/adr/0008-content-pack-sqlite-format.md) | SQLite `.pack` format with embedded FAISS index |
 | [0009](ejs-docs/adr/0009-manual-dependency-injection.md) | Manual DI via AppContainer over Hilt/Koin |
 | [0010](ejs-docs/adr/0010-aes256gcm-profile-encryption.md) | AES-256-GCM with Android Keystore for learner data |
 | [0011](ejs-docs/adr/0011-jinja2-style-template-engine.md) | Custom Jinja2-style prompt template engine |
+| [0012](ejs-docs/adr/0012-gemma4-unified-on-device-model.md) | Gemma 4 1B as unified on-device model (supersedes 0006 + 0007) |
+
+| [0012](ejs-docs/adr/0012-gemma4-unified-on-device-model.md) | Gemma 4 1B as unified on-device model (supersedes 0006 + 0007) |
 
 See the full [ADR index](ejs-docs/adr/) for all decisions.
 
@@ -293,6 +296,7 @@ See the full [ADR index](ejs-docs/adr/) for all decisions.
 | [Constraints](docs/product/constraints.md) | Hardware, connectivity, power, and deployment realities |
 | [User Personas](docs/product/user-personas.md) | Thandiwe, Sipho, Ms. Dlamini, and others |
 | [Feature PRD: Gemma 4](docs/product/feature-gemma4-semantic-search.md) | Gemma 4 migration and semantic search feature requirements |
+| [Device Validation Checklist](docs/DEVICE-VALIDATION-CHECKLIST.md) | Real-device test checklist for Gemma 4 migration (25 items) |
 | [Gemma 4 Evaluation](docs/research/gemma4-model-evaluation-and-semantic-search.md) | Model comparison, migration path, benchmark results |
 | [Coding Principles](docs/development/coding-principles.md) | Offline-first patterns, resource budgets, performance rules |
 | [Emulator Testing Runbook](docs/development/emulator-testing-runbook.md) | Step-by-step setup, sanity checks, and troubleshooting for Android emulator testing |
