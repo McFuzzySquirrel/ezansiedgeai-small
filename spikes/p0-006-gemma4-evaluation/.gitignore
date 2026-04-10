@@ -1,0 +1,23 @@
+# Ignore downloaded models (large binary files)
+models/
+*.task
+*.tflite
+*.bin
+*.gguf
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
