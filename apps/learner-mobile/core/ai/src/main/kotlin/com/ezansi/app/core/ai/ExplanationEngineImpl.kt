@@ -27,15 +27,23 @@ import kotlinx.coroutines.withTimeout
  *
  * Orchestrates the full retrieval-augmented generation pipeline:
  * 1. **Thinking** — Lazy-load models if not already in memory
- * 2. **Embedding** — Convert the learner's question into a 384-dim vector
+ * 2. **Embedding** — Convert the learner's question into an embedding vector
  * 3. **Retrieving** — Find the top-3 most relevant content chunks via cosine similarity
- * 4. **Prompt building** — Construct a grounded Qwen2.5 ChatML prompt
+ * 4. **Prompt building** — Construct a grounded prompt with learner preferences
  * 5. **Generating** — Stream tokens from the on-device LLM
  * 6. **Complete** — Return the full explanation with source attribution
  *
- * ## Sequential Model Loading (AI-08)
+ * ## Unified Model Loading (Gemma 4)
  *
- * To stay within the 2 GB RAM budget (NF-02), models are loaded sequentially:
+ * When [unifiedModel] is `true`, both embedding and generation share a single
+ * Gemma 4 model loaded via `GemmaModelProvider`. The model is loaded once and
+ * used for both operations without unloading between stages. Peak RAM stays
+ * within ~1,200 MB (FT-NF-04).
+ *
+ * ## Legacy Sequential Model Loading (AI-08)
+ *
+ * When [unifiedModel] is `false` (default), models are loaded sequentially
+ * to stay within the 2 GB RAM budget (NF-02):
  * 1. Load embedding model (~87 MB) → embed question → unload embedding model
  * 2. Load LLM (~1,066 MB) → generate explanation → keep LLM loaded for follow-ups
  *
@@ -53,14 +61,17 @@ import kotlinx.coroutines.withTimeout
  * All heavy computation runs on [DispatcherProvider.io] (embedding, retrieval,
  * inference). The returned Flow can be collected from any dispatcher.
  *
- * @param embeddingModel The on-device embedding model (all-MiniLM-L6-v2).
+ * @param embeddingModel The on-device embedding model (all-MiniLM-L6-v2 or GemmaEmbeddingModel).
  * @param contentRetriever Retrieves chunks by similarity from content packs.
  * @param promptBuilder Constructs grounded prompts from retrieved context.
- * @param llmEngine The on-device LLM for generating explanations.
+ * @param llmEngine The on-device LLM for generating explanations (LlamaCpp or GemmaLiteRtEngine).
  * @param contentPackRepository Provides list of installed content packs.
  * @param preferenceRepository Provides learner preferences for prompt customisation.
  * @param storageManager Resolves model file paths on local storage.
  * @param dispatcherProvider Coroutine dispatchers for background work.
+ * @param unifiedModel When `true`, embedding and LLM share the same Gemma 4 model instance —
+ *                     sequential unload/reload is skipped. When `false` (default), legacy
+ *                     sequential loading is used (AI-08).
  */
 class ExplanationEngineImpl(
     private val embeddingModel: EmbeddingModel,
@@ -71,6 +82,7 @@ class ExplanationEngineImpl(
     private val preferenceRepository: PreferenceRepository,
     private val storageManager: StorageManager,
     private val dispatcherProvider: DispatcherProvider,
+    private val unifiedModel: Boolean = false,
 ) : ExplanationEngine {
 
     companion object {
@@ -90,11 +102,14 @@ class ExplanationEngineImpl(
         /** Minimum similarity score for a chunk to be considered relevant. */
         private const val MIN_RELEVANCE_THRESHOLD = 0.05f
 
-        /** Expected embedding model filename in the models directory. */
+        /** Expected embedding model filename in the models directory (legacy). */
         private const val EMBEDDING_MODEL_FILENAME = "all-MiniLM-L6-v2.onnx"
 
-        /** Expected LLM model filename in the models directory. */
+        /** Expected LLM model filename in the models directory (legacy). */
         private const val LLM_MODEL_FILENAME = "qwen2.5-1.5b-instruct-q4_k_m.gguf"
+
+        /** Expected Gemma 4 unified model filename (embedding + generation). */
+        private const val GEMMA_MODEL_FILENAME = "gemma4-1b.task"
     }
 
     override fun explain(question: String, profileId: String): Flow<ExplanationResult> = flow {
@@ -162,10 +177,19 @@ class ExplanationEngineImpl(
                 "${System.currentTimeMillis() - startTimeMs}ms",
         )
 
-        // ── Stage 3: Unload embedding, load LLM ────────────────────
-        // Sequential model loading (AI-08): free embedding RAM before loading LLM
-        unloadEmbeddingModelIfLlmNotLoaded()
-        ensureLlmModelLoaded()
+        // ── Stage 3: Prepare LLM for generation ────────────────────
+        if (unifiedModel) {
+            // Unified model (Gemma 4): embedding and LLM share the same
+            // GemmaModelProvider instance. No need to unload/reload — just
+            // ensure the LLM engine knows about the already-loaded model.
+            ensureLlmModelLoaded()
+        } else {
+            // Legacy sequential loading (AI-08): free embedding RAM before loading LLM.
+            // Required when embedding (MiniLM ~87 MB) and LLM (Qwen2.5 ~1066 MB)
+            // are separate models that together exceed the 2 GB RAM budget.
+            unloadEmbeddingModelIfLlmNotLoaded()
+            ensureLlmModelLoaded()
+        }
         emitRuntimeStatus(collector)
 
         // ── Stage 4: Build prompt with learner preferences ──────────
@@ -256,14 +280,18 @@ class ExplanationEngineImpl(
     /**
      * Loads the embedding model lazily on first use.
      *
+     * When [unifiedModel] is `true`, loads the Gemma 4 `.task` file (shared with LLM).
+     * When `false`, loads the legacy all-MiniLM-L6-v2 ONNX model.
+     *
      * If the model file does not exist, throws with a user-friendly message.
      * The model path is resolved from [StorageManager.getModelsDir].
      */
     private suspend fun ensureEmbeddingModelLoaded() {
         if (embeddingModel.isLoaded()) return
 
-        val modelPath = resolveModelPath(EMBEDDING_MODEL_FILENAME)
-        Log.i(TAG, "Lazy-loading embedding model from: $modelPath")
+        val filename = if (unifiedModel) GEMMA_MODEL_FILENAME else EMBEDDING_MODEL_FILENAME
+        val modelPath = resolveModelPath(filename)
+        Log.i(TAG, "Lazy-loading embedding model from: $modelPath (unified=$unifiedModel)")
 
         try {
             embeddingModel.loadModel(modelPath)
@@ -280,14 +308,20 @@ class ExplanationEngineImpl(
     /**
      * Loads the LLM lazily on first use.
      *
-     * Follows the sequential loading pattern (AI-08): the embedding model
-     * should be unloaded before calling this to stay within RAM budget.
+     * When [unifiedModel] is `true`, loads the Gemma 4 `.task` file (shared with embedding).
+     * The provider handles idempotent loading — if the same model is already loaded
+     * by the embedding stage, this is a no-op.
+     *
+     * When `false`, loads the legacy Qwen2.5 GGUF model. Follows the sequential
+     * loading pattern (AI-08): the embedding model should be unloaded before
+     * calling this to stay within RAM budget.
      */
     private suspend fun ensureLlmModelLoaded() {
         if (llmEngine.isLoaded()) return
 
-        val modelPath = resolveModelPath(LLM_MODEL_FILENAME)
-        Log.i(TAG, "Lazy-loading LLM from: $modelPath")
+        val filename = if (unifiedModel) GEMMA_MODEL_FILENAME else LLM_MODEL_FILENAME
+        val modelPath = resolveModelPath(filename)
+        Log.i(TAG, "Lazy-loading LLM from: $modelPath (unified=$unifiedModel)")
 
         try {
             llmEngine.loadModel(modelPath)
@@ -304,10 +338,15 @@ class ExplanationEngineImpl(
     /**
      * Unloads the embedding model to free RAM before loading the LLM.
      *
-     * Only unloads if the LLM is not already loaded — when the LLM is
-     * cached from a previous query, we skip the unload/reload cycle.
+     * When [unifiedModel] is `true`, this is a no-op — the embedding and LLM
+     * share the same Gemma 4 model instance, so unloading the embedding model
+     * would also destroy the LLM's model handle.
+     *
+     * When `false` (legacy mode), only unloads if the LLM is not already loaded —
+     * when the LLM is cached from a previous query, we skip the unload/reload cycle.
      */
     private fun unloadEmbeddingModelIfLlmNotLoaded() {
+        if (unifiedModel) return // Unified model: embedding and LLM share the same instance
         if (!llmEngine.isLoaded() && embeddingModel.isLoaded()) {
             Log.i(TAG, "Unloading embedding model to free RAM for LLM (AI-08)")
             embeddingModel.unload()
