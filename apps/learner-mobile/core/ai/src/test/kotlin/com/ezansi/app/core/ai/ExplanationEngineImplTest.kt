@@ -27,10 +27,10 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
-import org.junit.jupiter.api.extension.ExtendWith
-import org.robolectric.junit5.RobolectricExtension
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
@@ -45,7 +45,7 @@ import kotlin.test.assertTrue
  * Runs under Robolectric for [StorageManager] (requires Context) and
  * android.util.Log usage throughout the implementation.
  */
-@ExtendWith(RobolectricExtension::class)
+@RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29])
 @DisplayName("ExplanationEngineImpl")
 class ExplanationEngineImplTest {

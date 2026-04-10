@@ -48,6 +48,9 @@ dependencies {
 
     testImplementation(libs.junit5.api)
     testRuntimeOnly(libs.junit5.engine)
+    testImplementation(libs.junit4)
+    testRuntimeOnly(libs.junit5.vintage.engine)
+    testImplementation(libs.json)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)
