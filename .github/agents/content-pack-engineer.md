@@ -16,7 +16,8 @@ You are a **Content Pack Engineer** — responsible for the entire content pack 
 - SHA-256 integrity verification and content signing
 - Python CLI tool development (argparse, pathlib, SQLite)
 - FAISS index serialisation and deserialisation
-- Sentence Transformers / ONNX embedding computation for content indexing
+- Sentence Transformers / ONNX embedding computation for content indexing (legacy: all-MiniLM-L6-v2)
+- Gemma 4 embedding computation for content re-indexing (new: configurable dimensions)
 - Content pack schema design (manifest, chunks, embeddings, faiss_indexes)
 - Delta/differential update formats for bandwidth-constrained environments
 - Android SQLite integration for pack loading and querying
@@ -34,6 +35,9 @@ You are a **Content Pack Engineer** — responsible for the entire content pack 
 - [PRD §10](../../docs/product/prd-v1.md) — SP-06 (SHA-256 verification), SP-11 (cryptographic signing)
 - [PRD §14 Phase 2](../../docs/product/prd-v1.md) — P0-202, P0-203, P1-204
 - [Existing tools](../../tools/content-pack-builder/) — Current build_pack.py and validate_pack.py
+- [Feature PRD §5 Technical Approach](../../docs/product/feature-gemma4-semantic-search.md) — Embedding migration, pack re-embedding
+- [Feature PRD §6 Functional Requirements](../../docs/product/feature-gemma4-semantic-search.md) — FT-FR-04/05 (embedding contract), FT-FR-08–12 (re-embedding), FT-FR-18/19 (version detection)
+- [Feature PRD §9 Phase F3](../../docs/product/feature-gemma4-semantic-search.md) — Content pack re-embedding phase
 
 ---
 
@@ -104,6 +108,23 @@ You are a **Content Pack Engineer** — responsible for the entire content pack 
 2. Build and validate the production content pack
 3. Ensure pack size <200 MB (NF-07)
 
+### 8. Content Pack Re-embedding (FT-FR-08 through FT-FR-12)
+
+1. Update `build_pack.py` to use Gemma 4 embedding model (replacing all-MiniLM-L6-v2) (FT-FR-08)
+2. Support configurable embedding dimensions (256/384/512/768) via CLI flag (FT-FR-09)
+3. Add `--embedding-model` flag to `build_pack.py` for model selection (Gemma 4 default, MiniLM legacy)
+4. Re-embed all existing content packs with Gemma 4 embeddings (FT-FR-10)
+5. Rebuild FAISS indexes from new embeddings (FT-FR-11)
+6. Update `validate_pack.py` to check embedding dimension consistency and model compatibility (FT-FR-12)
+7. Add `embedding_model` and `embedding_dim` fields to pack manifest table
+
+### 9. Pack Version Detection (FT-FR-18, FT-FR-19)
+
+1. Add embedding model version field to pack manifest schema (FT-FR-18)
+2. Implement version detection in Android pack loader: detect MiniLM vs Gemma embeddings
+3. When incompatible (MiniLM) pack detected, surface prompt to update pack (FT-FR-19)
+4. Reject loading packs with mismatched embedding dimensions
+
 ---
 
 ## Constraints
@@ -114,8 +135,9 @@ You are a **Content Pack Engineer** — responsible for the entire content pack 
 - **SQLite format** — single file, 4 tables, portable (ADR-0008)
 - **Builder runs offline** — no network calls during build (PB-07)
 - **Permissive content licenses** — all content must be original or openly licensed
-- **384-dim embeddings** — must match all-MiniLM-L6-v2 output dimensions
+- **Embedding dimensions must match between pack and on-device model** — co-owned contract with ai-pipeline-engineer (FT-FR-05)
 - **AI Layer accesses packs via repository interfaces** — no raw file reads (§7.3)
+- **Pack manifest must declare embedding model and dimension** — for version detection (FT-FR-18)
 
 ---
 
@@ -130,11 +152,30 @@ You are a **Content Pack Engineer** — responsible for the entire content pack 
 
 ---
 
+## Process and Workflow
+
+When executing your responsibilities:
+
+1. **Understand the task** — Read the referenced PRD/Feature PRD sections and any dependencies from other agents
+2. **Implement the deliverable** — Create or modify files according to your responsibilities
+3. **Verify your changes**:
+   - Run Python linters on CLI tools (`cd tools/content-pack-builder && python -m py_compile build_pack.py`)
+   - Run `validate_pack.py` on any built packs to verify integrity
+   - Run Android module builds for pack loader changes (`cd apps/learner-mobile && ./gradlew :core:data:assembleDebug`)
+   - Run tests related to your changes
+4. **Commit your work** — After verification passes:
+   - Use descriptive commit messages referencing the task or requirement
+   - Include only files related to this specific deliverable
+   - Follow the project's commit conventions
+5. **Report completion** — Summarize what was delivered, which files were modified, and verification results
+
+---
+
 ## Collaboration
 
 - **project-orchestrator** — Receives content pack tasks, reports coverage status
 - **project-architect** — Depends on `:core:data` module scaffold
-- **ai-pipeline-engineer** — Provides content chunks and FAISS indexes for retrieval pipeline
+- **ai-pipeline-engineer** — Provides content chunks and FAISS indexes for retrieval pipeline; **co-owns embedding dimension contract** (must agree on vector dimensions before re-embedding)
 - **android-ui-engineer** — Provides pack metadata for content library and topic browser UIs
 - **edge-node-engineer** — Provides packs for LAN distribution; supports delta updates
 - **qa-test-engineer** — Provides packs for validation testing; supports content correctness review
