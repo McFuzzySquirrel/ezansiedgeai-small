@@ -5,7 +5,7 @@ ejs:
   adr_id: "0007"
   title: all-MiniLM-L6-v2 as embedding model, FAISS Flat as vector store, revised storage & RAM budgets
   date: 2026-03-04
-  status: accepted
+  status: superseded  # Superseded by ADR-0012 (Gemma 4 1B unified model)
   session_id: ejs-session-2026-03-04-01
   session_journey: ejs-docs/journey/2026/ejs-session-2026-03-04-01.md
 
