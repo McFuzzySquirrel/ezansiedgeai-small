@@ -18,10 +18,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -31,6 +35,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -44,10 +50,13 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ezansi.app.core.data.contentpack.TopicNode
+import com.ezansi.app.feature.topics.search.SearchResultsList
+import com.ezansi.app.feature.topics.search.SearchViewModel
 
 /**
  * Topics browser screen — browse CAPS-aligned curriculum topics.
@@ -74,6 +83,7 @@ import com.ezansi.app.core.data.contentpack.TopicNode
  * - TalkBack logical navigation order (ACC-04)
  *
  * @param viewModel The [TopicsViewModel] providing topic tree state.
+ * @param searchViewModel The [SearchViewModel] providing semantic search state (FT-FR-06).
  * @param onNavigateToChat Callback to navigate to chat with a pre-filled question.
  * @param onNavigateToLibrary Callback to navigate to the content library.
  * @param modifier Modifier applied to the root layout.
@@ -82,11 +92,13 @@ import com.ezansi.app.core.data.contentpack.TopicNode
 @Composable
 fun TopicsScreen(
     viewModel: TopicsViewModel,
+    searchViewModel: SearchViewModel,
     onNavigateToChat: (question: String) -> Unit,
     onNavigateToLibrary: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val searchState by searchViewModel.uiState.collectAsStateWithLifecycle()
 
     // Handle system back button — go up one topic level before exiting
     BackHandler(enabled = state.breadcrumb.isNotEmpty() || state.selectedTopic != null) {
@@ -123,50 +135,154 @@ fun TopicsScreen(
         },
         modifier = modifier,
     ) { innerPadding ->
-        when {
-            state.isLoading -> {
-                LoadingState(modifier = Modifier.padding(innerPadding))
-            }
-
-            state.error != null -> {
-                ErrorState(
-                    error = state.error!!,
-                    onRetry = { viewModel.loadTopics() },
-                    modifier = Modifier.padding(innerPadding),
+        Column(modifier = Modifier.padding(innerPadding)) {
+            // ── Search bar (FT-FR-06) ───────────────────────────────
+            // Shown when content packs are loaded (no use searching empty state).
+            // Search bar sits between TopAppBar and the content area.
+            if (!state.isLoading && state.error == null && state.hasContentPacks) {
+                TopicSearchBar(
+                    query = searchState.query,
+                    onQueryChanged = searchViewModel::onQueryChanged,
+                    onSearchSubmitted = searchViewModel::onSearchSubmitted,
+                    onClearSearch = searchViewModel::clearSearch,
                 )
             }
 
-            !state.hasContentPacks -> {
-                ZeroPackState(
-                    onNavigateToLibrary = onNavigateToLibrary,
-                    modifier = Modifier.padding(innerPadding),
-                )
-            }
+            // ── Content area ────────────────────────────────────────
+            // When search query is active, show search results instead
+            // of the normal topic browser. Otherwise show normal content.
+            val isSearchActive = searchState.query.isNotBlank()
 
-            state.selectedTopic != null -> {
-                SelectedTopicContent(
-                    topic = state.selectedTopic!!,
-                    suggestedQuestions = state.suggestedQuestions,
-                    breadcrumb = state.breadcrumb,
-                    onQuestionTapped = onNavigateToChat,
-                    onBreadcrumbTapped = { index -> viewModel.navigateToBreadcrumb(index) },
-                    onHomeTapped = { viewModel.navigateToRoot() },
-                    modifier = Modifier.padding(innerPadding),
-                )
-            }
+            when {
+                // Search is active — show search results (FT-FR-06)
+                isSearchActive -> {
+                    SearchResultsList(
+                        uiState = searchState,
+                        onAskAiClick = { result ->
+                            // F4.5: "Ask AI" navigates to ChatWithQuestion (FT-FR-07)
+                            val question = "Explain ${result.title}"
+                            onNavigateToChat(question)
+                        },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
 
-            else -> {
-                TopicBrowserContent(
-                    children = state.currentChildren,
-                    breadcrumb = state.breadcrumb,
-                    onTopicTapped = { topic -> viewModel.navigateToTopic(topic) },
-                    onBreadcrumbTapped = { index -> viewModel.navigateToBreadcrumb(index) },
-                    onHomeTapped = { viewModel.navigateToRoot() },
-                    modifier = Modifier.padding(innerPadding),
-                )
+                state.isLoading -> {
+                    LoadingState()
+                }
+
+                state.error != null -> {
+                    ErrorState(
+                        error = state.error!!,
+                        onRetry = { viewModel.loadTopics() },
+                    )
+                }
+
+                !state.hasContentPacks -> {
+                    ZeroPackState(
+                        onNavigateToLibrary = onNavigateToLibrary,
+                    )
+                }
+
+                state.selectedTopic != null -> {
+                    SelectedTopicContent(
+                        topic = state.selectedTopic!!,
+                        suggestedQuestions = state.suggestedQuestions,
+                        breadcrumb = state.breadcrumb,
+                        onQuestionTapped = onNavigateToChat,
+                        onBreadcrumbTapped = { index -> viewModel.navigateToBreadcrumb(index) },
+                        onHomeTapped = { viewModel.navigateToRoot() },
+                    )
+                }
+
+                else -> {
+                    TopicBrowserContent(
+                        children = state.currentChildren,
+                        breadcrumb = state.breadcrumb,
+                        onTopicTapped = { topic -> viewModel.navigateToTopic(topic) },
+                        onBreadcrumbTapped = { index -> viewModel.navigateToBreadcrumb(index) },
+                        onHomeTapped = { viewModel.navigateToRoot() },
+                    )
+                }
             }
         }
     }
+}
+
+// ── Search Bar ───────────────────────────────────────────────────────
+
+/**
+ * Search bar for semantic search within topics (FT-FR-06).
+ *
+ * Material 3 OutlinedTextField with search icon (leading) and clear
+ * button (trailing, shown when query is non-empty). All interactive
+ * elements are ≥ 48 dp (ACC-02) with content descriptions for
+ * TalkBack (ACC-04).
+ *
+ * @param query Current search query text.
+ * @param onQueryChanged Called on every keystroke for debounced search.
+ * @param onSearchSubmitted Called when the keyboard "done" action fires.
+ * @param onClearSearch Called when the clear button is tapped.
+ * @param modifier Modifier for the search bar container.
+ */
+@Composable
+private fun TopicSearchBar(
+    query: String,
+    onQueryChanged: (String) -> Unit,
+    onSearchSubmitted: () -> Unit,
+    onClearSearch: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val searchHint = stringResource(R.string.search_bar_hint)
+    val clearDescription = stringResource(R.string.search_bar_clear)
+
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChanged,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        placeholder = {
+            Text(
+                text = searchHint,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Filled.Search,
+                contentDescription = null, // Decorative — field label provides context
+                modifier = Modifier.size(24.dp),
+            )
+        },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(
+                    onClick = onClearSearch,
+                    modifier = Modifier.size(48.dp), // ACC-02: 48dp touch target
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Clear,
+                        contentDescription = clearDescription,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+            }
+        },
+        keyboardOptions = KeyboardOptions(
+            imeAction = ImeAction.Search,
+        ),
+        keyboardActions = KeyboardActions(
+            onSearch = { onSearchSubmitted() },
+        ),
+        singleLine = true,
+        shape = MaterialTheme.shapes.medium,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+        ),
+        textStyle = MaterialTheme.typography.bodyLarge,
+    )
 }
 
 // ── Topic Browser Content ───────────────────────────────────────────
