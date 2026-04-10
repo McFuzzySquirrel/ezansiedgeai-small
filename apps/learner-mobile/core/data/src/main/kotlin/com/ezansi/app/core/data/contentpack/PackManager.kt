@@ -237,6 +237,48 @@ class PackManager(
     }
 
     /**
+     * Checks whether a pack's embeddings are compatible with the on-device model.
+     *
+     * Reads manifest fields (schema_version, embedding_dim, embedding_model,
+     * embedding_model_version) and applies the rules from EMBEDDING_CONTRACT.md §6.2.
+     * Callers should gate retrieval operations on [PackCompatibility.Compatible].
+     *
+     * @param packId The unique pack identifier to check.
+     * @return The compatibility result, or [PackCompatibility.IncompatibleSchema]
+     *         if the pack cannot be found or opened.
+     */
+    fun checkPackCompatibility(packId: String): PackCompatibility {
+        val database = openPack(packId)
+            ?: return PackCompatibility.IncompatibleSchema(
+                "Content pack not found: $packId",
+            )
+
+        return try {
+            val manifest = database.getManifest()
+            val result = PackVersionDetector.checkCompatibility(manifest)
+            if (result !is PackCompatibility.Compatible) {
+                Log.w(
+                    TAG,
+                    "Pack '$packId' is incompatible: " +
+                        when (result) {
+                            is PackCompatibility.IncompatibleSchema -> result.message
+                            is PackCompatibility.IncompatibleDimension -> result.message
+                            is PackCompatibility.IncompatibleModel -> result.message
+                            is PackCompatibility.IncompatibleVersion -> result.message
+                            else -> "unknown"
+                        },
+                )
+            }
+            result
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to check compatibility for pack: $packId", e)
+            PackCompatibility.IncompatibleSchema(
+                "Could not read pack manifest: $packId",
+            )
+        }
+    }
+
+    /**
      * Closes the database handle for a specific pack.
      */
     @Synchronized

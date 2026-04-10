@@ -27,7 +27,7 @@ class PackVerifier {
         private const val TAG = "PackVerifier"
 
         /** Maximum schema version this app version can read. */
-        private const val MAX_SUPPORTED_SCHEMA_VERSION = 1
+        private const val MAX_SUPPORTED_SCHEMA_VERSION = 2
 
         /** Tables that must exist in every valid content pack. */
         private val REQUIRED_TABLES = setOf("manifest", "chunks", "embeddings")
