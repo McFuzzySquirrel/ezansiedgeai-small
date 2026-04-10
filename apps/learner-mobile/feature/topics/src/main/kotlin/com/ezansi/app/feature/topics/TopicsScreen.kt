@@ -242,7 +242,7 @@ private fun TopicSearchBar(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
-        placeholder = {
+        label = {
             Text(
                 text = searchHint,
                 style = MaterialTheme.typography.bodyLarge,

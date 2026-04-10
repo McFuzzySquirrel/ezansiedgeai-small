@@ -48,7 +48,8 @@
     <string name="search_bar_clear">Clear search</string>
     <string name="search_no_results">No matching topics found</string>
     <string name="search_no_results_hint">Try different words</string>
-    <string name="search_ask_ai">Ask AI ▶</string>
+    <string name="search_ask_ai">Ask AI</string>
+    <string name="search_ask_ai_label">Ask AI about %1$s</string>
     <string name="search_error">Search failed</string>
     <string name="search_loading">Searching\u2026</string>
     <string name="search_relevance">%d%%</string>

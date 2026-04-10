@@ -69,7 +69,7 @@ class ContentSearchEngineImpl(
 
             EzansiResult.Success(searchResults)
         } catch (e: Exception) {
-            Log.e(TAG, "Search failed for query: \"$query\"", e)
+            Log.e(TAG, "Search failed for query (${query.length} chars)", e)
             EzansiResult.Error(
                 "Search failed. Please try again.",
                 cause = e,

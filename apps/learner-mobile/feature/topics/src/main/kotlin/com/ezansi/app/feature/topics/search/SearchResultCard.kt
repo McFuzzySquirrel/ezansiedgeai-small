@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -115,12 +116,14 @@ fun SearchResultCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // "Ask AI ▶" button — 48dp min touch target (ACC-02)
+            // "Ask AI" button — 48dp min touch target (ACC-02)
+            val askAiLabel = stringResource(R.string.search_ask_ai_label, result.title)
             Button(
                 onClick = { onAskAiClick(result) },
                 modifier = Modifier
                     .align(Alignment.End)
-                    .size(width = 120.dp, height = 48.dp),
+                    .defaultMinSize(minWidth = 120.dp, minHeight = 48.dp)
+                    .semantics { contentDescription = askAiLabel },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
