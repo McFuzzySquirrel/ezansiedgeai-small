@@ -5,7 +5,19 @@ package com.ezansi.app.core.ai.prompt.templates
  *
  * These templates are used when the active content pack does not include
  * its own custom templates. They define the personality, grounding rules,
- * and structure of the prompts sent to the on-device LLM (Qwen2.5-1.5B).
+ * and structure of the prompts sent to the on-device LLM.
+ *
+ * ## Supported Models
+ *
+ * The template **content** is model-agnostic — the same personality,
+ * preference conditionals, and grounding rules are used for both:
+ * - **Qwen2.5-1.5B** (legacy, via llama.cpp)
+ * - **Gemma 4 1B** (primary, via MediaPipe LiteRT)
+ *
+ * The chat-format wrapping (ChatML vs Gemma turn delimiters) is handled
+ * by [PromptBuilder][com.ezansi.app.core.ai.prompt.PromptBuilder] via
+ * [ChatFormat][com.ezansi.app.core.ai.prompt.ChatFormat], not by these
+ * templates.
  *
  * ## Template Architecture
  *
@@ -36,6 +48,7 @@ package com.ezansi.app.core.ai.prompt.templates
  *
  * @see com.ezansi.app.core.ai.prompt.TemplateEngine
  * @see com.ezansi.app.core.ai.prompt.PromptBuilder
+ * @see com.ezansi.app.core.ai.prompt.ChatFormat
  */
 object DefaultTemplates {
 
