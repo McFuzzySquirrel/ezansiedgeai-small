@@ -4,7 +4,7 @@
 **Feature PRD**: docs/product/feature-gemma4-semantic-search.md
 **Original PRD**: docs/product/prd-v1.md (Phase 0 + Phase 1 complete)
 **Phase**: F1 — Gemma 4 Validation Spike (P0-006)
-**Status**: In Progress (F1.1 ✅, F1.2 ✅)
+**Status**: F1 Complete — Awaiting Decision Gate (F1.6)
 **Last Updated**: 2026-04-10
 **Branch**: feature/gemma4
 
@@ -13,20 +13,22 @@
 - [x] Agent team updated for feature (6 agents modified)
 - [x] F1.1: Add MediaPipe GenAI SDK dependency (da16ed1) — Apache 2.0, GMS-free ✓
 - [x] F1.2: Spike scaffold at `spikes/p0-006-gemma4-evaluation/` — 5 scripts, config, README
+- [x] F1.4: Cross-platform embedding parity validation (validate_parity.py)
+- [x] F1.5: Device validation checklist + spike report template
 
 ## Current Task
-- [ ] Phase F1, Task F1.3: Implement spike benchmark harness (@ai-pipeline-engineer)
+- [ ] Phase F1, Task F1.3: Android spike benchmark harness (@ai-pipeline-engineer)
   - Status: In Progress
-  - Notes: Generation + embedding benchmarks, GPU delegate, report generator
+  - Notes: GemmaSpikeLlmEngine, GemmaSpikeEmbeddingModel, SpikeBenchmarkRunner + tests
 
 ## Remaining
 
 ### Phase F1: Gemma 4 Validation Spike (P0-006)
 - [x] F1.1: Add MediaPipe SDK dependency (@project-architect)
 - [x] F1.2: Create spike scaffold (@qa-test-engineer)
-- [ ] F1.3: Implement spike benchmark harness (@ai-pipeline-engineer)
-- [ ] F1.4: Cross-platform embedding parity validation (@ai-pipeline-engineer)
-- [ ] F1.5: Spike report + device-run checklist
+- [x] F1.3: Implement spike benchmark harness (@ai-pipeline-engineer)
+- [x] F1.4: Cross-platform embedding parity validation (@ai-pipeline-engineer)
+- [x] F1.5: Spike report + device-run checklist
 - [ ] F1.6: Decision gate (user — unified/hybrid/no-migration)
 
 ### Phase F2: Gemma 4 Engine Integration
