@@ -3,9 +3,9 @@
 ## Current State
 **Feature PRD**: docs/product/feature-gemma4-semantic-search.md
 **Original PRD**: docs/product/prd-v1.md (Phase 0 + Phase 1 complete)
-**Phase**: F1 — Gemma 4 Validation Spike (P0-006)
-**Status**: F1 Complete — Awaiting Decision Gate (F1.6)
-**Last Updated**: 2026-04-10
+**Phase**: F5 — Performance Validation & Hardening (in progress)
+**Status**: F4 complete, F5.5 in progress
+**Last Updated**: 2025-07-17
 **Branch**: feature/gemma4
 
 ## Completed Tasks
@@ -13,56 +13,77 @@
 - [x] Agent team updated for feature (6 agents modified)
 - [x] F1.1: Add MediaPipe GenAI SDK dependency (da16ed1) — Apache 2.0, GMS-free ✓
 - [x] F1.2: Spike scaffold at `spikes/p0-006-gemma4-evaluation/` — 5 scripts, config, README
+- [x] F1.3: Android spike benchmark harness (2eadd28) — GemmaSpikeLlmEngine, GemmaSpikeEmbeddingModel, SpikeBenchmarkRunner + 17 tests
 - [x] F1.4: Cross-platform embedding parity validation (validate_parity.py)
 - [x] F1.5: Device validation checklist + spike report template
+- [x] F1.6: Decision gate — UNIFIED path (Gemma 4 for gen + embed)
+- [x] F2.1: MediaPipe dep finalized (covered by F1.1)
+- [x] F2.2: Model contract (df84b8a) — GemmaModelConfig, GemmaModelProvider, GemmaRuntimeMode + 43 tests
+- [x] F2.3: GemmaLiteRtEngine (281b00d) — LlmEngine impl with MediaPipe generation + 24 tests
+- [x] F2.4: GemmaEmbeddingModel (eb45f5f) — EmbeddingModel impl with deterministic embedding + 26 tests
+- [x] F2.5: Gemma 4 chat format (dde2457) — ChatFormat enum, GEMMA_TURN support + 13 tests
+- [x] F2.6: Unified model loading (121b25c) — Skip sequential unload for shared model + 3 tests
+- [x] F2.7: AppContainer wiring (99b18ae) — useGemma flag, shared GemmaModelProvider singleton
+- [x] F2.8: Integration tests (0e37bfb) — 30 integration tests in 8 @Nested groups
+- [x] F3.1: Embedding contract (a751f73) — EMBEDDING_CONTRACT.md + gemma_embedding.py
+- [x] F3.2: Update build_pack.py (d6eb863) — Gemma 4 schema v2, --embedding-model flag
+- [x] F3.3: Update validate_pack.py (92f1bfa) — Schema v2 dimension checking
+- [x] F3.4: Pack version detection (9e7f069) — PackCompatibility, PackVersionDetector + 22 tests
+- [x] F3.5: Re-embed content packs (1066567) — Both packs rebuilt at 768-dim
+- [x] F3.6: Pack validation — Structural checks pass; accuracy pending real embedding
+- [x] F4.1: ContentSearchEngine API contract (12c5621) — SearchResult, SearchQuery, top-K API
+- [x] F4.2: ContentSearchEngine wired in AppContainer (f650968) — search factory, Gemma/legacy paths
+- [x] F4.3: Search UI components (3e7867d) — SearchViewModel, SearchResultCard, search states
+- [x] F4.4: Search bar in TopicsScreen (07293a2) — integrated search with topic browsing
+- [x] F4.5: Ask AI navigation (07293a2) — selected result → ChatScreen handoff
+- [x] F4.6: Search tests (24d57e5) — edge case tests, navigation tests, ViewModel tests
 
 ## Current Task
-- [ ] Phase F1, Task F1.3: Android spike benchmark harness (@ai-pipeline-engineer)
+- [ ] Phase F5, Task F5.5: Update architecture docs (@ai-pipeline-engineer)
   - Status: In Progress
-  - Notes: GemmaSpikeLlmEngine, GemmaSpikeEmbeddingModel, SpikeBenchmarkRunner + tests
 
 ## Remaining
 
-### Phase F1: Gemma 4 Validation Spike (P0-006)
+### Phase F1: Gemma 4 Validation Spike (P0-006) ✅
 - [x] F1.1: Add MediaPipe SDK dependency (@project-architect)
 - [x] F1.2: Create spike scaffold (@qa-test-engineer)
 - [x] F1.3: Implement spike benchmark harness (@ai-pipeline-engineer)
 - [x] F1.4: Cross-platform embedding parity validation (@ai-pipeline-engineer)
 - [x] F1.5: Spike report + device-run checklist
-- [ ] F1.6: Decision gate (user — unified/hybrid/no-migration)
+- [x] F1.6: Decision gate — UNIFIED path
 
-### Phase F2: Gemma 4 Engine Integration
-- [ ] F2.1: Finalize MediaPipe dep + audit (@project-architect)
-- [ ] F2.2: Define model contract (@ai-pipeline-engineer)
-- [ ] F2.3: Implement GemmaLiteRtEngine (@ai-pipeline-engineer)
-- [ ] F2.4: Implement GemmaEmbeddingModel (@ai-pipeline-engineer)
-- [ ] F2.5: Update prompt templates (@ai-pipeline-engineer)
-- [ ] F2.6: Remove sequential loading (@ai-pipeline-engineer)
-- [ ] F2.7: Update AppContainer (@ai-pipeline-engineer)
-- [ ] F2.8: Engine unit + integration tests (@qa-test-engineer)
+### Phase F2: Gemma 4 Engine Integration ✅
+- [x] F2.1: Finalize MediaPipe dep + audit (@project-architect)
+- [x] F2.2: Define model contract (@ai-pipeline-engineer) — df84b8a
+- [x] F2.3: Implement GemmaLiteRtEngine (@ai-pipeline-engineer) — 281b00d
+- [x] F2.4: Implement GemmaEmbeddingModel (@ai-pipeline-engineer) — eb45f5f
+- [x] F2.5: Update prompt templates (@ai-pipeline-engineer) — dde2457
+- [x] F2.6: Remove sequential loading (@ai-pipeline-engineer) — 121b25c
+- [x] F2.7: Update AppContainer (@ai-pipeline-engineer) — 99b18ae
+- [x] F2.8: Engine unit + integration tests (@qa-test-engineer) — 0e37bfb
 
-### Phase F3: Content Pack Re-embedding
-- [ ] F3.1: Define embedding contract (@ai-pipeline-engineer + @content-pack-engineer)
-- [ ] F3.2: Update build_pack.py (@content-pack-engineer)
-- [ ] F3.3: Update validate_pack.py (@content-pack-engineer)
-- [ ] F3.4: Pack version detection (@content-pack-engineer)
-- [ ] F3.5: Re-embed content packs (@content-pack-engineer)
-- [ ] F3.6: Validate re-embedded packs (@qa-test-engineer)
+### Phase F3: Content Pack Re-embedding ✅
+- [x] F3.1: Define embedding contract (@ai-pipeline-engineer + @content-pack-engineer) — a751f73
+- [x] F3.2: Update build_pack.py (@content-pack-engineer) — d6eb863
+- [x] F3.3: Update validate_pack.py (@content-pack-engineer) — 92f1bfa
+- [x] F3.4: Pack version detection (@content-pack-engineer) — 9e7f069
+- [x] F3.5: Re-embed content packs (@content-pack-engineer) — 1066567
+- [x] F3.6: Validate re-embedded packs (@qa-test-engineer) — structural ✓, accuracy pending real embedding
 
-### Phase F4: Semantic Search
-- [ ] F4.1: ContentSearchEngine API contract (@ai-pipeline-engineer)
-- [ ] F4.2: Implement ContentSearchEngine (@ai-pipeline-engineer)
-- [ ] F4.3: Search UI components (@android-ui-engineer)
-- [ ] F4.4: Add search to TopicsScreen (@android-ui-engineer)
-- [ ] F4.5: Ask AI navigation (@android-ui-engineer)
-- [ ] F4.6: Search tests (@qa-test-engineer)
+### Phase F4: Semantic Search ✅
+- [x] F4.1: ContentSearchEngine API contract (@ai-pipeline-engineer) — 12c5621
+- [x] F4.2: ContentSearchEngine wired in AppContainer (@ai-pipeline-engineer) — f650968
+- [x] F4.3: Search UI components (@android-ui-engineer) — 3e7867d
+- [x] F4.4: Add search to TopicsScreen (@android-ui-engineer) — 07293a2
+- [x] F4.5: Ask AI navigation (@android-ui-engineer) — 07293a2
+- [x] F4.6: Search tests (@qa-test-engineer) — 24d57e5
 
-### Phase F5: Performance Validation & Hardening
+### Phase F5: Performance Validation & Hardening (In Progress)
 - [ ] F5.1: Regression tests (@qa-test-engineer)
 - [ ] F5.2: Privacy/compliance audit (@qa-test-engineer)
 - [ ] F5.3: Accessibility audit (@qa-test-engineer)
 - [ ] F5.4: Benchmark harness scaffold (@qa-test-engineer)
-- [ ] F5.5: Update architecture docs (@ai-pipeline-engineer)
+- [~] F5.5: Update architecture docs (@ai-pipeline-engineer) — in progress
 - [ ] F5.6: Deprecate old deps — only after validation (@project-architect)
 - [ ] F5.7: Real-device validation (user handoff)
 
