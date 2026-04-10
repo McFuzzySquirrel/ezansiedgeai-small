@@ -77,8 +77,18 @@ interface LlmEngine {
  * Observable runtime mode for LLM inference.
  */
 enum class LlmRuntimeMode {
+    /** Real llama.cpp native inference available (Qwen2.5 GGUF). */
     REAL_NATIVE,
+
+    /** Real MediaPipe GenAI inference available (Gemma 4 LiteRT). */
+    REAL_MEDIAPIPE,
+
+    /** Native library present but model load failed or unavailable. */
     NATIVE_UNAVAILABLE,
+
+    /** Mock/stub engine for development and testing. */
     MOCK,
+
+    /** Runtime mode not yet determined. */
     UNKNOWN,
 }

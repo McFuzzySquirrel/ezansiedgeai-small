@@ -218,6 +218,7 @@ class ExplanationEngineImpl(
 
         val embeddingMessage = when (embeddingMode) {
             EmbeddingRuntimeMode.REAL_ONNX -> "Real ONNX path active"
+            EmbeddingRuntimeMode.REAL_MEDIAPIPE -> "Real MediaPipe Gemma 4 embedding path active"
             EmbeddingRuntimeMode.DETERMINISTIC_FALLBACK -> "ONNX fallback deterministic embedding path"
             EmbeddingRuntimeMode.MOCK -> "Mock embedding path active"
             EmbeddingRuntimeMode.UNKNOWN -> "Embedding runtime mode unknown"
@@ -225,6 +226,7 @@ class ExplanationEngineImpl(
 
         val llmMessage = when (llmMode) {
             LlmRuntimeMode.REAL_NATIVE -> "Llama native runtime path active"
+            LlmRuntimeMode.REAL_MEDIAPIPE -> "Real MediaPipe Gemma 4 generation path active"
             LlmRuntimeMode.NATIVE_UNAVAILABLE -> "Llama native unavailable path"
             LlmRuntimeMode.MOCK -> "Mock LLM path active"
             LlmRuntimeMode.UNKNOWN -> "LLM runtime mode unknown"
