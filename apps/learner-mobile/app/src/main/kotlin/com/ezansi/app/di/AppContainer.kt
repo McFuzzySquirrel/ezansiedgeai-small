@@ -15,7 +15,10 @@ import com.ezansi.app.core.ai.prompt.ChatFormat
 import com.ezansi.app.core.ai.prompt.PromptBuilder
 import com.ezansi.app.core.ai.retrieval.ContentRetriever
 import com.ezansi.app.core.ai.retrieval.CosineSimilarityRetriever
+import com.ezansi.app.core.ai.search.ContentSearchEngine
+import com.ezansi.app.core.ai.search.ContentSearchEngineImpl
 import com.ezansi.app.core.common.DefaultDispatcherProvider
+import com.ezansi.app.core.common.EzansiResult
 import com.ezansi.app.core.common.DispatcherProvider
 import com.ezansi.app.core.common.StorageManager
 import com.ezansi.app.core.data.ContentPackRepository
@@ -246,6 +249,28 @@ class AppContainer(private val context: Context) {
             storageManager = storageManager,
             dispatcherProvider = dispatcherProvider,
             unifiedModel = useGemma,
+        )
+    }
+
+    /**
+     * ContentSearchEngine — semantic search without LLM generation (FT-FR-06/07).
+     *
+     * Searches across all installed content packs using the shared embedding
+     * model. Does NOT load or invoke the LLM — search stays under 100 ms.
+     * Learners can tap "Ask AI" on a result to feed it into ExplanationEngine.
+     */
+    val contentSearchEngine: ContentSearchEngine by lazy {
+        ContentSearchEngineImpl(
+            embeddingModel = embeddingModel,
+            contentRetriever = contentRetriever,
+            getInstalledPackIds = {
+                val result = contentPackRepository.getInstalledPacks()
+                if (result is EzansiResult.Success) {
+                    result.data.map { it.packId }
+                } else {
+                    emptyList()
+                }
+            },
         )
     }
 }
