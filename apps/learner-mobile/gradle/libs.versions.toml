@@ -28,8 +28,11 @@ androidx-test-runner = "1.6.2"
 androidx-test-ext-junit = "1.2.1"
 compose-test = "1.7.6"
 
-# ONNX Runtime Android — for on-device embedding model inference
+# ONNX Runtime Android — for on-device embedding model inference (legacy fallback)
 onnxruntime = "1.19.0"
+
+# MediaPipe GenAI SDK — on-device LLM inference + embedding via LiteRT (Gemma 4)
+mediapipe-genai = "0.10.33"
 
 [libraries]
 # AndroidX Core
@@ -74,8 +77,11 @@ androidx-test-core = { group = "androidx.test", name = "core", version.ref = "an
 androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidx-test-runner" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }
 
-# ONNX Runtime Android — on-device embedding model inference (all-MiniLM-L6-v2)
+# ONNX Runtime Android — on-device embedding model inference (all-MiniLM-L6-v2, legacy fallback)
 onnxruntime-android = { group = "com.microsoft.onnxruntime", name = "onnxruntime-android", version.ref = "onnxruntime" }
+
+# MediaPipe GenAI SDK — on-device LLM inference + embedding via LiteRT (Gemma 4)
+mediapipe-tasks-genai = { group = "com.google.mediapipe", name = "tasks-genai", version.ref = "mediapipe-genai" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

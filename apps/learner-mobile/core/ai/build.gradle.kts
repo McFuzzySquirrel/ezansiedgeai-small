@@ -36,9 +36,15 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
 
     // ONNX Runtime Android for embedding model inference (all-MiniLM-L6-v2).
+    // Legacy fallback — kept for rollback if Gemma 4 embedding quality is insufficient.
     // The OnnxEmbeddingModel uses reflection to load ONNX classes so the app
     // compiles and runs with MockEmbeddingModel even if this is commented out.
     implementation(libs.onnxruntime.android)
+
+    // MediaPipe GenAI SDK for Gemma 4 LLM inference + embedding via LiteRT.
+    // Replaces llama.cpp (generation) + ONNX (embedding) with a unified model.
+    // Apache 2.0 licensed, no GMS dependency, min SDK 24 (our target: 29).
+    implementation(libs.mediapipe.tasks.genai)
 
     testImplementation(libs.junit5.api)
     testRuntimeOnly(libs.junit5.engine)
