@@ -4,7 +4,7 @@
 
 **Feature Name:** Gemma 4 Model Migration & User-Facing Semantic Search  
 **Parent PRD:** [docs/product/prd-v1.md](prd-v1.md)  
-**Status:** Draft  
+**Status:** Implemented (awaiting real-device validation)  
 **Summary:** Replace the current Qwen2.5-1.5B (llama.cpp) + all-MiniLM-L6-v2 (ONNX) dual-model stack with Google Gemma 4 1B (INT4) via MediaPipe/LiteRT — a single model that handles both text generation and embedding. This halves disk usage (~600 MB vs 1,153 MB), halves RAM (~800 MB vs 1,839 MB), enables GPU acceleration (2–4× faster generation), and eliminates sequential model loading. Simultaneously, expose the existing RAG retrieval capability as a user-facing semantic search feature — allowing learners to find content in < 100 ms without triggering full LLM generation.  
 **Scope:**
 - **In scope:** Gemma 4 1B validation spike, GemmaLiteRtEngine + GemmaEmbeddingModel implementation, ContentSearchEngine + search UI, prompt template migration, content pack re-embedding, updated build tooling, offline model distribution via sideload bundle
