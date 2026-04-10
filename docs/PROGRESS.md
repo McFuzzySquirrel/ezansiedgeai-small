@@ -39,8 +39,8 @@
 - [x] F4.6: Search tests (24d57e5) — edge case tests, navigation tests, ViewModel tests
 
 ## Current Task
-- [ ] Phase F5, Task F5.5: Update architecture docs (@ai-pipeline-engineer)
-  - Status: In Progress
+- [x] Phase F5, Task F5.5: Update architecture docs (@ai-pipeline-engineer) — 60b23b8
+  - Status: Done
 
 ## Remaining
 
@@ -83,7 +83,7 @@
 - [ ] F5.2: Privacy/compliance audit (@qa-test-engineer)
 - [ ] F5.3: Accessibility audit (@qa-test-engineer)
 - [ ] F5.4: Benchmark harness scaffold (@qa-test-engineer)
-- [~] F5.5: Update architecture docs (@ai-pipeline-engineer) — in progress
+- [x] F5.5: Update architecture docs (@ai-pipeline-engineer) — 60b23b8
 - [ ] F5.6: Deprecate old deps — only after validation (@project-architect)
 - [ ] F5.7: Real-device validation (user handoff)
 
