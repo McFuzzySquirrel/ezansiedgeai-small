@@ -7,6 +7,9 @@
 # ONNX models
 *.onnx
 
+# MediaPipe Task bundles (Gemma 4 and other MediaPipe models)
+*.task
+
 # PyTorch model files
 *.bin
 *.pt

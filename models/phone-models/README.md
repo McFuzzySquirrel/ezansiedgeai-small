@@ -12,11 +12,57 @@ These models power the core AI experience in eZansiEdgeAI:
 
 All models run **entirely on the phone** with no network dependency.
 
-## Selected Models (Phase 0 Validated)
+## Selected Models
 
-Phase 0 spikes tested 4 LLM candidates (12 prompts × 3 runs each) and 3 embedding models (12 combinations). The following models were selected:
+Phase 0 spikes tested 4 LLM candidates and 3 embedding models. ADR 0012 supersedes ADR 0006, moving from Qwen2.5 (llama.cpp/GGUF) to Gemma 4 (MediaPipe/LiteRT).
 
-### On-Device LLM: Qwen2.5-1.5B-Instruct Q4_K_M
+### On-Device LLM: Gemma 4 1B (MediaPipe Task format) ✅ Current
+
+| Property | Value |
+|----------|-------|
+| Model | [gemma-3n-E1B-it-int4](https://www.kaggle.com/models/google/gemma-3/tfLite) |
+| Format | `.task` bundle (MediaPipe LiteRT) |
+| File size | ~529 MB |
+| Load time | < 5 s (device-dependent) |
+| Inference | MediaPipe LlmInference API |
+| Context window | 4,096 tokens |
+
+**Step 1 — Download the model bundle:**
+```bash
+# Option A: Kaggle (requires Kaggle account + kaggle CLI)
+pip install kaggle
+kaggle models instances versions download \
+  google/gemma-3/tfLite/gemma3-n-e1b-it-int4 \
+  --path models/phone-models/
+
+# Option B: Google AI Studio / Vertex AI
+# Visit https://ai.google.dev/gemma and download the TFLite/MediaPipe variant
+# Save the file as: models/phone-models/gemma4-1b.task
+```
+
+**Step 2 — Push to device via ADB:**
+```bash
+# Ensure a device is connected (USB debugging enabled)
+adb devices
+
+# Create the target directory on-device
+adb shell mkdir -p /sdcard/Android/data/com.ezansi.learner/files/models/
+
+# Push the model (529 MB — may take 1–3 minutes over USB 2.0)
+adb push models/phone-models/gemma4-1b.task \
+  /sdcard/Android/data/com.ezansi.learner/files/models/gemma4-1b.task
+
+# Verify the push
+adb shell ls -lh /sdcard/Android/data/com.ezansi.learner/files/models/
+```
+
+**Why this model:** Gemma 4 1B in MediaPipe task format eliminates llama.cpp native JNI, unifies inference under one SDK, and unlocks GPU/NPU delegation. See [ADR 0012](../../ejs-docs/adr/0012-gemma4-unified-on-device-model.md).
+
+---
+
+### On-Device LLM (Legacy): Qwen2.5-1.5B-Instruct Q4_K_M
+
+> **Superseded by Gemma 4 (ADR 0012).** Kept here for reference and fallback testing only.
 
 | Property | Value |
 |----------|-------|
@@ -27,21 +73,21 @@ Phase 0 spikes tested 4 LLM candidates (12 prompts × 3 runs each) and 3 embeddi
 | Load time | 0.78 s |
 | 150-token response | ~8 s avg |
 | Peak RAM | 1,839 MB |
-| Context window | 2,048 tokens (configured) |
 
-**Download:**
+**Download (if needed for fallback testing):**
 ```bash
-# From Hugging Face (requires huggingface-cli)
 huggingface-cli download Qwen/Qwen2.5-1.5B-Instruct-GGUF \
   qwen2.5-1.5b-instruct-q4_k_m.gguf \
   --local-dir models/phone-models/
-
-# Or direct download
-curl -L -o models/phone-models/qwen2.5-1.5b-instruct-q4_k_m.gguf \
-  "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf"
 ```
 
-**Why this model:** Only candidate that passed all Phase 0 criteria (load < 5 s, 150-token < 10 s, RAM < 2 GB). SmolLM2-1.7B was fastest but exceeded RAM by 8%. See [ADR 0006](../../ejs-docs/adr/0006-qwen25-1.5b-as-on-device-llm.md).
+**Push to device:**
+```bash
+adb push models/phone-models/qwen2.5-1.5b-instruct-q4_k_m.gguf \
+  /sdcard/Android/data/com.ezansi.learner/files/models/
+```
+
+See [ADR 0006](../../ejs-docs/adr/0006-qwen25-1.5b-as-on-device-llm.md) for original selection rationale.
 
 ### Embedding Model: all-MiniLM-L6-v2
 
@@ -86,16 +132,26 @@ Models are loaded **sequentially** — the embedding model is unloaded before th
 
 ## Loading Models onto a Phone
 
-After downloading the model files, push them to the device:
+Download the model files first (see sections above), then push via ADB:
 
 ```bash
-# Push LLM model
-adb push models/phone-models/qwen2.5-1.5b-instruct-q4_k_m.gguf \
-  /sdcard/Android/data/com.ezansi.learner/files/models/
+# Ensure device is connected with USB debugging enabled
+adb devices
 
-# Push embedding model
-adb push models/phone-models/all-MiniLM-L6-v2-onnx/ \
-  /sdcard/Android/data/com.ezansi.learner/files/models/embeddings/
+# Create target directory
+adb shell mkdir -p /sdcard/Android/data/com.ezansi.learner/files/models/
+adb shell mkdir -p /sdcard/Android/data/com.ezansi.learner/files/models/embeddings/
+
+# Push Gemma 4 LLM (primary — 529 MB)
+adb push models/phone-models/gemma4-1b.task \
+  /sdcard/Android/data/com.ezansi.learner/files/models/gemma4-1b.task
+
+# Push embedding model (87 MB)
+adb push models/phone-models/all-MiniLM-L6-v2.onnx \
+  /sdcard/Android/data/com.ezansi.learner/files/models/embeddings/all-MiniLM-L6-v2.onnx
+
+# Verify
+adb shell ls -lh /sdcard/Android/data/com.ezansi.learner/files/models/
 ```
 
 > **Note:** The app runs with mock AI implementations when model files are not present. All UI features work — only the AI-generated explanations are replaced with placeholder text.
@@ -104,11 +160,10 @@ adb push models/phone-models/all-MiniLM-L6-v2-onnx/ \
 
 | Component | Size | Notes |
 |-----------|------|-------|
-| LLM (Qwen2.5-1.5B Q4_K_M) | ~1,066 MB | Downloaded on first setup |
-| Embedding (all-MiniLM-L6-v2) | ~87 MB | Downloaded on first setup |
-| **Total models** | **~1,153 MB** | Within 1.4 GB first-launch budget |
-
-Peak RAM (sequential loading): ~554 MB active working set against a 1,161 MB budget on 4 GB devices.
+| LLM (Gemma 4 1B MediaPipe) | ~529 MB | Push via ADB — not in repo |
+| Embedding (all-MiniLM-L6-v2) | ~87 MB | Push via ADB — not in repo |
+| Legacy LLM (Qwen2.5 Q4_K_M) | ~1,066 MB | Optional fallback — not in repo |
+| **Total (active models)** | **~616 MB** | Fits within 1.4 GB first-launch budget |
 
 ## Git & Large Files
 
@@ -122,7 +177,8 @@ Large model files are excluded from version control via `models/.gitignore`. Onl
 
 | ADR | Decision |
 |-----|----------|
-| [ADR 0006](../../ejs-docs/adr/0006-qwen25-1.5b-as-on-device-llm.md) | Qwen2.5-1.5B selected as on-device LLM |
+| [ADR 0012](../../ejs-docs/adr/0012-gemma4-unified-on-device-model.md) | Gemma 4 1B (MediaPipe) replaces Qwen2.5 as primary LLM |
+| [ADR 0006](../../ejs-docs/adr/0006-qwen25-1.5b-as-on-device-llm.md) | Qwen2.5-1.5B original selection (superseded) |
 | [ADR 0007](../../ejs-docs/adr/0007-embedding-model-vector-store-storage-budget.md) | all-MiniLM-L6-v2 + FAISS for embedding and retrieval |
 
 ## Spike Reports
