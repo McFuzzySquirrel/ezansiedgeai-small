@@ -11,13 +11,15 @@
 
 **Offline, phone-first AI learning support for learners who cannot afford cloud AI.**
 
-[Overview](#overview) · [How It Works](#how-it-works) · [Getting Started](#getting-started) · [Project Status](#project-status) · [Documentation](#documentation)
+[Overview](#overview) · [How It Works](#how-it-works) · [Getting Started](#getting-started) · [Project Status](#project-status) · [Documentation](#documentation) · [Project Story](ejs-docs/narratives/story-2026-04-11.md)
 
 </div>
 
 ---
 
 eZansiEdgeAI delivers curriculum-grounded maths explanations to South African school learners on low-end Android phones — no internet, no subscription, no cloud account. The system runs entirely on-device using Gemma 4 1B as a unified model for both embedding and generation, with pre-packaged curriculum content that can be sideloaded via USB or transferred phone-to-phone.
+
+For a full end-to-end narrative of how the project was built (sessions, ADR decisions, and milestones), see [Project Story (2026-04-11)](ejs-docs/narratives/story-2026-04-11.md).
 
 **V1 target:** Grade 6 Mathematics, CAPS-aligned (South African national curriculum).
 
