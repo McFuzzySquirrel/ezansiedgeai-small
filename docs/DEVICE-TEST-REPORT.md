@@ -160,6 +160,7 @@
 | 3 | Hash-based retrieval not semantic | Search quality | Will improve with real Gemma 4 embedding API |
 | 4 | 1B model sometimes asks questions back | Response quality | Prompt tuning needed; not a pipeline bug |
 | 5 | 1B model doesn't reliably follow style modifiers | "visual" style not visual | Model capability limitation; pipeline code is correct |
+| 6 | No conversation continuity | Follow-up questions lose context | Pipeline is stateless per question — each call does fresh retrieval + prompt. Needs conversation history in prompt (future feature). |
 
 ## Appendix: Screenshots
 
