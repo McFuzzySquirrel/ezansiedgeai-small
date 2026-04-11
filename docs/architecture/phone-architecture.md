@@ -15,7 +15,7 @@ layers: App, AI, Data, and Hardware.
 | Android version | 10 (API 29) | 12+ | Broad device coverage |
 | RAM | 4 GB | 4–6 GB | ~3 GB usable; LLM uses ~1.8 GB, ~1.2 GB for embedding + app. Raised from 3 GB after P0-001 |
 | Storage (APK) | 50 MB | 50 MB | App code only, no models bundled |
-| Storage (models) | 1.1 GB | 1.2 GB | LLM (~1,066 MB) + embedding (~80 MB), downloaded on first launch |
+| Storage (models) | 600 MB | 1.2 GB | Gemma 4 unified (~600 MB); legacy LLM (~1,066 MB) + embedding (~87 MB) |
 | Storage (packs) | 200 MB | 1 GB | Per content pack, including pre-computed embeddings |
 | CPU | ARMv8-A (64-bit) | Cortex-A75+ | NEON SIMD required for inference |
 | NPU | Not assumed | Delegated if present | NNAPI / Qualcomm QNN |
@@ -73,27 +73,37 @@ layers: App, AI, Data, and Hardware.
 
 ## Layer 2 — AI Layer
 
-```
-┌──────────────────────────────────────────────┐
-│                  AI Layer                     │
-│                                              │
-│  ┌──────────────────────────────────────┐    │
-│  │ Explanation Engine (orchestrator)    │    │
-│  └──────────┬───────────────┬───────────┘    │
-│             │               │                │
-│  ┌──────────▼──────┐ ┌─────▼────────────┐   │
-│  │ Embedding Model │ │ Quantized LLM    │   │
-│  │ (tiny, ~50 MB)  │ │ (GGUF/ONNX,      │   │
-│  │                 │ │  1–2 GB)          │   │
-│  └──────────┬──────┘ └─────▲────────────┘   │
-│             │               │                │
-│  ┌──────────▼──────────────┐│                │
-│  │ Prompt Template Engine  ││                │
-│  │ + Retrieval Formatter   │┘                │
-│  └─────────────────────────┘                 │
-│                                              │
-└──────────────────────────────────────────────┘
-```
+The AI Layer exposes two public APIs — `ExplanationEngine` (RAG pipeline) and
+`ContentSearchEngine` (semantic search) — and forbids direct model access from
+the App Layer.
+
+### Primary Stack: Gemma 4 (Unified Model)
+
+| Property | Value |
+|----------|-------|
+| Model | Gemma 4 1B INT4 |
+| Runtime | MediaPipe GenAI SDK / LiteRT |
+| Size | ~600 MB (single model for both modes) |
+| Embedding dimension | 768 (configurable: 256/384/512/768) |
+| Context window | 2048 tokens |
+| Inference target | ≤5 s end-to-end on Snapdragon 680-class GPU |
+| GPU delegation | LiteRT GPU delegate, NNAPI fallback, CPU fallback |
+| Peak RAM (models) | ≤1,200 MB |
+
+The unified model serves both embedding and generation — no sequential
+unload/reload cycle. This halves peak RAM vs. the legacy two-model approach.
+
+### Legacy Fallback Stack
+
+Retained behind the `useGemma` flag in `AppContainer` for rollback safety:
+
+| Component | Choice | Size |
+|-----------|--------|------|
+| LLM | Qwen2.5-1.5B-Instruct Q4_K_M (GGUF, llama.cpp) | ~1,066 MB |
+| Embedding | all-MiniLM-L6-v2 (ONNX Runtime) | ~87 MB |
+
+Legacy engines use sequential loading (embed → unload → load LLM → generate)
+with ≤2 GB peak RAM. They will be deprecated after F5 device validation passes.
 
 ### Retrieval-First Approach
 
@@ -129,29 +139,40 @@ Level: {learner.reading_level}
 6. **Post-process** — extract worked example steps, format math notation,
    apply length limits.
 
-### Embedding Model
+### Embedding
 
-| Property | Target |
-|----------|--------|
-| Architecture | all-MiniLM-L6-v2 or similar |
-| Quantisation | INT8 / ONNX |
-| Size | ≤ 100 MB |
-| Dimension | 384 |
-| Latency | < 50 ms per query on mid-range phone |
+| Property | Gemma 4 (primary) | MiniLM (legacy fallback) |
+|----------|-------------------|--------------------------|
+| Architecture | Gemma 4 1B embedding mode | all-MiniLM-L6-v2 |
+| Runtime | MediaPipe GenAI SDK | ONNX Runtime |
+| Size | Shared (~600 MB total) | ~87 MB |
+| Dimension | 768 (configurable) | 384 |
+| Latency | < 100 ms per query | < 50 ms per query |
 
 Embeddings for content chunks are **pre-computed** at pack build time and
-shipped inside the pack. Only the query needs to be embedded at runtime.
+shipped inside the pack (schema v2 = 768-dim, schema v1 = 384-dim).
+Only the query needs to be embedded at runtime.
 
-### Quantized LLM
+### Generation
 
-| Property | Target |
-|----------|--------|
-| Base model | Phi-3-mini, Qwen2-1.5B, or Gemma-2B class |
-| Quantisation | Q4_K_M (GGUF) or INT4 (ONNX) |
-| Size | 1–2 GB |
-| Context window | 2048 tokens (sufficient for retrieval-grounded prompts) |
-| Inference runtime | llama.cpp (Android NDK) or ONNX Runtime Mobile |
-| Target latency | < 8 s first token, ~15 tok/s generation on Snapdragon 680 |
+| Property | Gemma 4 (primary) | Qwen2.5 (legacy fallback) |
+|----------|-------------------|---------------------------|
+| Model | Gemma 4 1B INT4 | Qwen2.5-1.5B-Instruct Q4_K_M |
+| Runtime | MediaPipe GenAI SDK / LiteRT | llama.cpp (Android NDK) |
+| Size | Shared (~600 MB total) | ~1,066 MB |
+| Context window | 2048 tokens | 2048 tokens |
+| GPU delegation | LiteRT GPU delegate → NNAPI → CPU | CPU only (ARM NEON) |
+| Target latency | ≤ 5 s end-to-end (GPU) | < 8 s first token (CPU) |
+
+### ContentSearchEngine (New)
+
+Semantic search without LLM generation:
+
+1. **Embed** the search query using the embedding model.
+2. **Search** FAISS index for top-K results (< 100 ms).
+3. **Rank** by cosine similarity score.
+4. **Return** structured results: chunk text, topic, subtopic, CAPS alignment.
+5. **(Optional)** "Ask AI" hands the selected result + query to `ExplanationEngine`.
 
 ### Prompt Template Engine
 
@@ -222,9 +243,10 @@ maths-grade6-caps-v1.0/
 
 | Concern | Strategy |
 |---------|----------|
-| CPU inference | llama.cpp / ONNX Runtime compiled with ARM NEON |
-| NPU delegation | NNAPI delegate (auto-detected, graceful fallback) |
-| Memory budget | Model loaded with mmap; inference uses streaming decode |
+| GPU inference | LiteRT GPU delegate (primary); fastest path for Gemma 4 |
+| NPU delegation | NNAPI delegate (second fallback, auto-detected) |
+| CPU inference | ARM NEON SIMD (final fallback); llama.cpp path is CPU-only |
+| Memory budget | Gemma 4 unified: ≤1,200 MB; Legacy sequential: ≤2,000 MB |
 | Battery | Inference capped at 30 s wall-time; background processing disabled |
 | Thermal | Token generation throttled if device temp exceeds threshold |
 | Storage | Packs stored on adoptable storage if available |

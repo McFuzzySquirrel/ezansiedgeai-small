@@ -34,6 +34,10 @@ You are a **QA/Test Engineer** — responsible for the complete testing strategy
 - [PRD §10 Security & Privacy](../../docs/product/prd-v1.md) — Security requirements to verify
 - [PRD §11 Accessibility](../../docs/product/prd-v1.md) — Accessibility requirements to verify
 - [PRD §14 Phase 3](../../docs/product/prd-v1.md) — P0-303 (battery/thermal), P0-304 (crash recovery), P1-307 (release hardening)
+- [Feature PRD §6 Functional Requirements](../../docs/product/feature-gemma4-semantic-search.md) — FT-FR-13–17 (spike benchmarks), FT-FR-20–25 (privacy/compliance)
+- [Feature PRD §7 Non-Functional Requirements](../../docs/product/feature-gemma4-semantic-search.md) — FT-NF-01–10 (performance targets)
+- [Feature PRD §10 Acceptance Criteria](../../docs/product/feature-gemma4-semantic-search.md) — 20 acceptance criteria
+- [Feature PRD §9 Phases F1, F5](../../docs/product/feature-gemma4-semantic-search.md) — Spike validation and performance verification
 
 ---
 
@@ -126,6 +130,33 @@ You are a **QA/Test Engineer** — responsible for the complete testing strategy
 5. Verify APK is signed and contains no debug code
 6. Verify sideload installation works cleanly
 
+### 10. Spike P0-006 Validation (FT-FR-13 through FT-FR-17)
+
+1. Define benchmark harness for Gemma 4 spike on real Snapdragon 680-class device (FT-FR-13)
+2. Benchmark generation quality: BLEU/ROUGE against Qwen2.5 baseline (FT-FR-14)
+3. Benchmark generation latency: tokens/sec on GPU vs CPU (FT-FR-15)
+4. Benchmark embedding quality: cosine similarity vs MiniLM baseline (FT-FR-16)
+5. Benchmark memory footprint: peak RSS, thermal throttle rate (FT-FR-17)
+6. Produce structured spike report with go/no-go recommendation for 3-way decision gate
+7. **Real-device validation required** — emulator-only benchmarks are insufficient
+
+### 11. Semantic Search Testing (FT-FR-06, FT-FR-07)
+
+1. Unit test ContentSearchEngine: query → embed → retrieve → rank → return
+2. Integration test search UI: text input → debounce → search → display results
+3. Test "Ask AI" flow: search result selection → ChatScreen with pre-populated context
+4. Test edge cases: empty query, no results, single result, special characters
+5. Measure search latency against <100ms target (FT-NF-02)
+
+### 12. Privacy & Compliance Verification (FT-FR-20 through FT-FR-25)
+
+1. Verify MediaPipe SDK makes zero network calls — packet capture on real device (FT-FR-20)
+2. Verify MediaPipe SDK requires no new permissions beyond existing manifest (FT-FR-21)
+3. Verify MediaPipe SDK works on GMS-free device (Huawei/AOSP) (FT-FR-22)
+4. Verify all mock/dev code paths still function after migration (FT-FR-23)
+5. Verify pack version detection correctly identifies MiniLM vs Gemma embeddings (FT-FR-24)
+6. Verify incompatible pack prompt is displayed when MiniLM pack detected (FT-FR-25)
+
 ---
 
 ## Constraints
@@ -135,6 +166,7 @@ You are a **QA/Test Engineer** — responsible for the complete testing strategy
 - **Performance regressions block merge** — >500 ms cold start or >2 s inference increase (§15)
 - **Pack validation runs in CI** (§15)
 - **Security tests are non-negotiable** — every SP-* requirement must have a corresponding test
+- **Spike benchmarks require real device** — emulator-only results are insufficient for go/no-go decision (FT-FR-13)
 
 ---
 
@@ -149,6 +181,24 @@ You are a **QA/Test Engineer** — responsible for the complete testing strategy
 
 ---
 
+## Process and Workflow
+
+When executing your responsibilities:
+
+1. **Understand the task** — Read the referenced PRD/Feature PRD sections and any dependencies from other agents
+2. **Implement the deliverable** — Create or modify test files according to your responsibilities
+3. **Verify your changes**:
+   - Run the tests you've written (`cd apps/learner-mobile && ./gradlew test`)
+   - Ensure existing tests still pass
+   - Verify coverage targets are met where applicable
+4. **Commit your work** — After verification passes:
+   - Use descriptive commit messages referencing the task or requirement
+   - Include only files related to this specific deliverable
+   - Follow the project's commit conventions
+5. **Report completion** — Summarize test results: pass/fail counts, coverage, performance measurements
+
+---
+
 ## Collaboration
 
 - **project-orchestrator** — Receives test tasks, reports coverage and pass rates
@@ -156,5 +206,5 @@ You are a **QA/Test Engineer** — responsible for the complete testing strategy
 - **all feature agents** — Tests their outputs; reports failures back for fixes
 - **content-pack-engineer** — Validates content packs with validate_pack.py
 - **learner-data-engineer** — Tests encryption, crash recovery, data isolation
-- **ai-pipeline-engineer** — Tests pipeline with mocked inference; benchmarks performance
+- **ai-pipeline-engineer** — Tests pipeline with mocked inference; benchmarks performance; validates spike P0-006 results
 - **edge-node-engineer** — Tests discovery, sync, and degradation scenarios

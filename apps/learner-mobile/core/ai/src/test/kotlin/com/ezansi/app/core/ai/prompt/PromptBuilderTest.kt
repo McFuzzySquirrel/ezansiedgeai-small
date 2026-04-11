@@ -16,7 +16,9 @@ import org.junit.Test
  * - Basic prompt construction with default preferences
  * - Preference injection (explanation style, reading level, example type)
  * - Token budget management and chunk truncation
- * - ChatML format compliance
+ * - Qwen2.5 ChatML format compliance
+ * - Gemma 4 turn format compliance
+ * - Backward compatibility (default format is QWEN_CHATML)
  * - Grounding instruction always present (AI-10)
  * - Edge cases (empty chunks, no preferences, very long content)
  *
@@ -488,6 +490,210 @@ class PromptBuilderTest {
         // Grounding check
         assertTrue(prompt.contains("Use ONLY the curriculum content"))
         assertTrue(prompt.contains("Never make up mathematical facts"))
+    }
+
+    // ── Gemma 4 turn format ────────────────────────────────────────
+
+    @Test
+    fun `gemma format produces start_of_turn delimiter`() {
+        val gemmaBuilder = PromptBuilder(chatFormat = ChatFormat.GEMMA_TURN)
+        val prompt = gemmaBuilder.buildGroundedPromptFromRetrievedChunks(
+            question = "What is 1/2 + 1/4?",
+            retrievedChunks = createTestChunks(1),
+            preferences = null,
+        )
+        assertTrue(
+            "Gemma format must contain <start_of_turn>",
+            prompt.contains("<start_of_turn>"),
+        )
+    }
+
+    @Test
+    fun `gemma format produces end_of_turn delimiter`() {
+        val gemmaBuilder = PromptBuilder(chatFormat = ChatFormat.GEMMA_TURN)
+        val prompt = gemmaBuilder.buildGroundedPromptFromRetrievedChunks(
+            question = "What is 1/2 + 1/4?",
+            retrievedChunks = createTestChunks(1),
+            preferences = null,
+        )
+        assertTrue(
+            "Gemma format must contain <end_of_turn>",
+            prompt.contains("<end_of_turn>"),
+        )
+    }
+
+    @Test
+    fun `gemma format has no separate system role`() {
+        val gemmaBuilder = PromptBuilder(chatFormat = ChatFormat.GEMMA_TURN)
+        val prompt = gemmaBuilder.buildGroundedPromptFromRetrievedChunks(
+            question = "What is 1/2 + 1/4?",
+            retrievedChunks = createTestChunks(1),
+            preferences = null,
+        )
+        assertFalse(
+            "Gemma format must NOT contain <start_of_turn>system",
+            prompt.contains("<start_of_turn>system"),
+        )
+        assertFalse(
+            "Gemma format must NOT contain ChatML delimiters",
+            prompt.contains("<|im_start|>"),
+        )
+    }
+
+    @Test
+    fun `gemma format system prompt is inside user turn`() {
+        val gemmaBuilder = PromptBuilder(chatFormat = ChatFormat.GEMMA_TURN)
+        val prompt = gemmaBuilder.buildGroundedPromptFromRetrievedChunks(
+            question = "What is 1/2 + 1/4?",
+            retrievedChunks = createTestChunks(1),
+            preferences = null,
+        )
+        // System content (eZansi personality) should appear after <start_of_turn>user
+        // and before <end_of_turn>, i.e. inside the user turn
+        val userTurn = prompt.substringAfter("<start_of_turn>user\n")
+            .substringBefore("<end_of_turn>")
+        assertTrue(
+            "System prompt (eZansi personality) must be inside user turn",
+            userTurn.contains("eZansi"),
+        )
+        assertTrue(
+            "Grounding instruction must be inside user turn",
+            userTurn.contains("Use ONLY the curriculum content provided"),
+        )
+    }
+
+    @Test
+    fun `gemma format ends with start_of_turn model`() {
+        val gemmaBuilder = PromptBuilder(chatFormat = ChatFormat.GEMMA_TURN)
+        val prompt = gemmaBuilder.buildGroundedPromptFromRetrievedChunks(
+            question = "What is 1/2 + 1/4?",
+            retrievedChunks = createTestChunks(1),
+            preferences = null,
+        )
+        assertTrue(
+            "Gemma format must end with <start_of_turn>model\\n",
+            prompt.endsWith("<start_of_turn>model\n"),
+        )
+    }
+
+    @Test
+    fun `gemma format includes grounding instruction`() {
+        val gemmaBuilder = PromptBuilder(chatFormat = ChatFormat.GEMMA_TURN)
+        val prompt = gemmaBuilder.buildGroundedPromptFromRetrievedChunks(
+            question = "What is 2+2?",
+            retrievedChunks = createTestChunks(1),
+            preferences = null,
+        )
+        assertTrue(
+            "Grounding instruction must be present in Gemma format (AI-10)",
+            prompt.contains("Use ONLY the curriculum content provided"),
+        )
+        assertTrue(
+            "Grounding rules must be present in Gemma format",
+            prompt.contains("Never make up mathematical facts"),
+        )
+    }
+
+    @Test
+    fun `gemma format includes chunk content and question`() {
+        val gemmaBuilder = PromptBuilder(chatFormat = ChatFormat.GEMMA_TURN)
+        val chunks = listOf(
+            createChunk("ch1", "Adding Fractions", "To add fractions, find the LCD."),
+        )
+        val prompt = gemmaBuilder.buildGroundedPromptFromRetrievedChunks(
+            question = "How do I add fractions?",
+            retrievedChunks = chunks,
+            preferences = null,
+        )
+        assertTrue("Gemma prompt must include chunk title", prompt.contains("Adding Fractions"))
+        assertTrue("Gemma prompt must include chunk content", prompt.contains("find the LCD"))
+        assertTrue("Gemma prompt must include question", prompt.contains("How do I add fractions?"))
+    }
+
+    @Test
+    fun `gemma format has correct structure order`() {
+        val gemmaBuilder = PromptBuilder(chatFormat = ChatFormat.GEMMA_TURN)
+        val prompt = gemmaBuilder.buildGroundedPromptFromRetrievedChunks(
+            question = "Test question",
+            retrievedChunks = createTestChunks(1),
+            preferences = null,
+        )
+        val userStart = prompt.indexOf("<start_of_turn>user")
+        val endOfTurn = prompt.indexOf("<end_of_turn>")
+        val modelStart = prompt.indexOf("<start_of_turn>model")
+
+        assertTrue("User turn must come before end_of_turn", userStart < endOfTurn)
+        assertTrue("end_of_turn must come before model turn", endOfTurn < modelStart)
+    }
+
+    @Test
+    fun `gemma format with empty chunks still produces valid prompt`() {
+        val gemmaBuilder = PromptBuilder(chatFormat = ChatFormat.GEMMA_TURN)
+        val prompt = gemmaBuilder.buildGroundedPromptFromRetrievedChunks(
+            question = "Test question",
+            retrievedChunks = emptyList(),
+            preferences = null,
+        )
+        assertTrue(prompt.contains("<start_of_turn>user"))
+        assertTrue(prompt.contains("<end_of_turn>"))
+        assertTrue(prompt.endsWith("<start_of_turn>model\n"))
+    }
+
+    // ── Backward compatibility ──────────────────────────────────────
+
+    @Test
+    fun `default format is QWEN_CHATML for backward compatibility`() {
+        // PromptBuilder() with no chatFormat argument should use QWEN_CHATML
+        val defaultBuilder = PromptBuilder()
+        val prompt = defaultBuilder.buildGroundedPromptFromRetrievedChunks(
+            question = "What is 2+2?",
+            retrievedChunks = createTestChunks(1),
+            preferences = null,
+        )
+        assertTrue(
+            "Default format must be QWEN_CHATML",
+            prompt.contains("<|im_start|>system"),
+        )
+        assertFalse(
+            "Default format must NOT contain Gemma delimiters",
+            prompt.contains("<start_of_turn>"),
+        )
+    }
+
+    @Test
+    fun `qwen format does not contain gemma delimiters`() {
+        val qwenBuilder = PromptBuilder(chatFormat = ChatFormat.QWEN_CHATML)
+        val prompt = qwenBuilder.buildGroundedPromptFromRetrievedChunks(
+            question = "Test question",
+            retrievedChunks = createTestChunks(1),
+            preferences = null,
+        )
+        assertFalse(
+            "Qwen format must NOT contain <start_of_turn>",
+            prompt.contains("<start_of_turn>"),
+        )
+        assertFalse(
+            "Qwen format must NOT contain <end_of_turn>",
+            prompt.contains("<end_of_turn>"),
+        )
+    }
+
+    @Test
+    fun `gemma format does not contain qwen delimiters`() {
+        val gemmaBuilder = PromptBuilder(chatFormat = ChatFormat.GEMMA_TURN)
+        val prompt = gemmaBuilder.buildGroundedPromptFromRetrievedChunks(
+            question = "Test question",
+            retrievedChunks = createTestChunks(1),
+            preferences = null,
+        )
+        assertFalse(
+            "Gemma format must NOT contain <|im_start|>",
+            prompt.contains("<|im_start|>"),
+        )
+        assertFalse(
+            "Gemma format must NOT contain <|im_end|>",
+            prompt.contains("<|im_end|>"),
+        )
     }
 
     // ── Test helpers ────────────────────────────────────────────────

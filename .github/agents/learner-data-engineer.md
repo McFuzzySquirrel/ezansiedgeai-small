@@ -116,7 +116,7 @@ You are a **Learner Data Engineer** — responsible for all learner-facing data 
 
 - **project-orchestrator** — Receives data layer tasks, reports completion
 - **project-architect** — Depends on `:core:data` module scaffold and dependency configuration
-- **android-ui-engineer** — Provides ProfileRepository, PreferenceRepository, ChatHistoryRepository APIs for UI screens
+- **android-ui-engineer** — Provides ProfileRepository, PreferenceRepository, ChatHistoryRepository APIs for UI screens; **reviews "Ask AI" → ChatScreen handoff** to ensure chat history and context are correctly persisted
 - **ai-pipeline-engineer** — Provides learner preferences for prompt injection; stores chat history
 - **content-pack-engineer** — Coordinates atomic pack installation/rollback
 - **qa-test-engineer** — Supports encryption testing, crash recovery testing, data isolation testing

@@ -6,7 +6,8 @@
 [![Phase 1](https://img.shields.io/badge/status-Phase%201%20Complete-brightgreen?style=flat-square)]()
 [![Platform](https://img.shields.io/badge/platform-Android%2010%2B-3ddc84?style=flat-square&logo=android&logoColor=white)]()
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-7f52ff?style=flat-square&logo=kotlin&logoColor=white)]()
-[![LLM](https://img.shields.io/badge/LLM-Qwen2.5--1.5B%20Q4__K__M-orange?style=flat-square)]()
+[![LLM](https://img.shields.io/badge/LLM-Gemma%204%201B%20INT4-orange?style=flat-square)]()
+[![Search](https://img.shields.io/badge/feature-Semantic%20Search-blue?style=flat-square)]()
 
 **Offline, phone-first AI learning support for learners who cannot afford cloud AI.**
 
@@ -16,7 +17,7 @@
 
 ---
 
-eZansiEdgeAI delivers curriculum-grounded maths explanations to South African school learners on low-end Android phones — no internet, no subscription, no cloud account. The system runs entirely on-device using a quantized small language model, local embeddings, and pre-packaged curriculum content that can be sideloaded via USB or transferred phone-to-phone.
+eZansiEdgeAI delivers curriculum-grounded maths explanations to South African school learners on low-end Android phones — no internet, no subscription, no cloud account. The system runs entirely on-device using Gemma 4 1B as a unified model for both embedding and generation, with pre-packaged curriculum content that can be sideloaded via USB or transferred phone-to-phone.
 
 **V1 target:** Grade 6 Mathematics, CAPS-aligned (South African national curriculum).
 
@@ -53,27 +54,32 @@ Rather than running a general-purpose AI, the system stores curriculum content l
 Learner asks a question
         │
         ▼
-┌─ Phone ──────────────────────────────────────────────┐
-│  1. Embed query    (all-MiniLM-L6-v2, ONNX, ~10 ms) │
-│  2. Vector search  (FAISS over local content pack)   │
-│  3. Build prompt   (Jinja2-style template engine)    │
-│  4. Generate       (Qwen2.5-1.5B Q4_K_M, llama.cpp) │
-│  5. Stream answer  (Markdown + LaTeX rendering)      │
-└──────────────────────────────────────────────────────┘
+┌─ Phone ──────────────────────────────────────────────────┐
+│  1. Embed query    (Gemma 4 embedding mode, 768-dim)     │
+│  2. Vector search  (FAISS over local content pack)       │
+│  3. Build prompt   (Jinja2-style template engine)        │
+│  4. Generate       (Gemma 4 1B INT4, MediaPipe/LiteRT)   │
+│  5. Stream answer  (Markdown + LaTeX rendering)          │
+└──────────────────────────────────────────────────────────┘
 ```
 
 If a **school edge node** (Raspberry Pi or old laptop on the school's WiFi) is present, it can serve content pack updates over LAN. But the phone always works without it.
 
 ### AI Stack
 
-Validated through Phase 0 spikes on target hardware:
+Validated through Phase 0 spikes and Gemma 4 evaluation on target hardware:
 
 | Component | Choice | Size | Key Metric |
 |-----------|--------|------|------------|
-| On-device LLM | Qwen2.5-1.5B-Instruct Q4_K_M (GGUF, llama.cpp) | ~1,066 MB | 150-token response: ~8 s avg |
-| Embedding model | all-MiniLM-L6-v2 (ONNX Runtime) | ~87 MB | Query embed: ~10 ms · Top-3 accuracy: 100% |
+| On-device model | Gemma 4 1B INT4 (MediaPipe GenAI SDK / LiteRT) | ~600 MB | Unified: generation + embedding from single model |
+| GPU delegation | LiteRT GPU delegate → NNAPI → CPU fallback | — | ≤5 s end-to-end on Snapdragon 680-class GPU |
+| Embedding | Gemma 4 embedding mode (768-dim) | Shared | Query embed: < 100 ms |
 | Vector store | FAISS Flat (IndexFlatIP) | per-pack | Search: < 0.1 ms |
-| Content packs | SQLite `.pack` with embedded FAISS index | ≤ 200 MB | SHA-256 verified, pre-computed 384-dim embeddings |
+| Content packs | SQLite `.pack` v2 with embedded FAISS index | ≤ 200 MB | SHA-256 verified, pre-computed 768-dim embeddings |
+| Semantic search | ContentSearchEngine (embed → retrieve → rank) | — | < 100 ms for top-10 results |
+
+> [!NOTE]
+> Legacy fallback engines (Qwen2.5-1.5B via llama.cpp + all-MiniLM-L6-v2 via ONNX Runtime) are retained behind a `useGemma` flag for rollback safety during device validation.
 
 > [!TIP]
 > See the ADRs for full decision rationale: [ADR 0006](ejs-docs/adr/0006-qwen25-1.5b-as-on-device-llm.md) · [ADR 0007](ejs-docs/adr/0007-embedding-model-vector-store-storage-budget.md) · [ADR 0008](ejs-docs/adr/0008-content-pack-sqlite-format.md) · [ADR 0009](ejs-docs/adr/0009-manual-dependency-injection.md) · [ADR 0010](ejs-docs/adr/0010-aes256gcm-profile-encryption.md) · [ADR 0011](ejs-docs/adr/0011-jinja2-style-template-engine.md)
@@ -135,7 +141,7 @@ adb install app/build/outputs/apk/debug/ezansi-v0.1.0-debug.apk
 # (enable "Install from unknown sources" in Android settings)
 ```
 
-The debug APK (~128 MB) includes ONNX Runtime native libraries. The app launches with **mock AI** — all screens are functional (chat, topics, profiles, preferences, library, onboarding) but responses are placeholders until real model files are loaded on the device. See [models/phone-models/](models/phone-models/) for model download instructions.
+The debug APK (~128 MB) includes native libraries. The app launches with **mock AI** — all screens are functional (chat, topics with search, profiles, preferences, library, onboarding) but responses are placeholders until real model files are loaded on the device. See [models/phone-models/](models/phone-models/) for model download instructions.
 
 ### Run Tests
 
@@ -144,7 +150,7 @@ cd apps/learner-mobile
 ./gradlew test
 ```
 
-The test suite covers the AI pipeline, template engine, data encryption, content pack loading, and UI view models (285 tests across 16 files).
+The test suite covers the AI pipeline, template engine, data encryption, content pack loading, semantic search, and UI view models (445 tests across 9 modules).
 
 ### Build a Content Pack
 
@@ -155,7 +161,7 @@ python build_pack.py --content content/ --output ../../content-packs/my-pack-v1.
 python validate_pack.py ../../content-packs/my-pack-v1.0.pack
 ```
 
-The builder ingests Markdown curriculum chunks, generates embeddings with all-MiniLM-L6-v2, builds a FAISS index, and packages everything into a versioned SQLite `.pack` file with SHA-256 integrity hashes.
+The builder ingests Markdown curriculum chunks, generates embeddings (Gemma 4 768-dim by default, MiniLM 384-dim with `--embedding-model minilm`), builds a FAISS index, and packages everything into a versioned SQLite `.pack` file with SHA-256 integrity hashes.
 
 ### Run a Phase 0 Spike
 
@@ -181,6 +187,7 @@ python scripts/pipeline.py
 |-------|-------|--------|
 | **Phase 0** — Feasibility | LLM spike, embedding spike, storage budget, sample content pack, E2E pipeline | **Complete** |
 | **Phase 1** — Offline Learning Loop | Android app, AI pipeline, chat UI, topic browser, content pack loader, profiles, onboarding | **Complete** |
+| **Feature** — Gemma 4 Migration | Unified model (gen + embed), GPU delegation, content pack v2, semantic search | **Complete** (device validation pending) |
 | **Phase 2** — Content & Personalisation | Full Grade 6 Maths CAPS pack, preference engine, delta updates, feedback system | Not started |
 | **Phase 3** — School Edge Node | LAN discovery, content sync, edge server | Not started |
 
@@ -197,20 +204,32 @@ The complete offline learning loop is implemented across 9 Gradle modules (74 Ko
 - **Template engine** — Jinja2-style renderer (`{{ }}`, `{% if %}`, `{% for %}`, filters) with grounding enforcement
 - **Onboarding** — zero-step entry with optional dismissible tooltips
 
+### Gemma 4 Migration Summary
+
+The AI pipeline has been upgraded from the Phase 1 dual-model stack (Qwen2.5-1.5B + all-MiniLM-L6-v2) to a unified Gemma 4 1B model:
+
+- **Unified model** — single Gemma 4 1B INT4 model (~600 MB) handles both embedding and generation, halving peak RAM
+- **GPU-first inference** — LiteRT GPU delegate with NNAPI and CPU fallback chain (was CPU-only)
+- **Semantic search** — new `ContentSearchEngine` enables search in the Topics browser without triggering LLM generation
+- **Content pack v2** — packs re-embedded at 768-dim (was 384-dim); `PackVersionDetector` handles both schema versions
+- **Legacy fallback** — old engines retained behind `useGemma` flag for rollback safety during device validation
+
+See the [Feature PRD](docs/product/feature-gemma4-semantic-search.md) and [Gemma 4 evaluation research](docs/research/gemma4-model-evaluation-and-semantic-search.md) for full rationale.
+
 > [!NOTE]
-> The app runs with mock AI implementations (no native `.so` files required). Real on-device inference requires downloading the GGUF model and ONNX embedding model to the device.
+> The app runs with mock AI implementations (no native `.so` files required). Real on-device inference requires downloading the Gemma 4 model to the device.
 
 ### Storage Budget
 
-| Component | Size |
-|-----------|------|
-| APK | ≤ 50 MB |
-| LLM (Qwen2.5-1.5B Q4_K_M) | ~1,066 MB |
-| Embedding model (all-MiniLM-L6-v2) | ~87 MB |
-| Content pack (per subject/grade) | ≤ 200 MB |
-| **Total first-launch footprint** | **~1,403 MB** |
+| Component | Gemma 4 (primary) | Legacy |
+|-----------|-------------------|--------|
+| APK | ≤ 50 MB | ≤ 50 MB |
+| Model | ~600 MB (Gemma 4 1B INT4, unified) | ~1,153 MB (LLM + embedding) |
+| Content pack (per subject/grade) | ≤ 200 MB | ≤ 200 MB |
+| **Total first-launch footprint** | **~850 MB** | **~1,403 MB** |
 
-Peak RAM: ~554 MB working set on 4 GB devices. Models are loaded sequentially, never simultaneously.
+Peak RAM: ≤1,200 MB model footprint on 4 GB devices (Gemma 4 unified model).
+Legacy path: ~554 MB working set with sequential model loading.
 
 ## Repository Structure
 
@@ -219,12 +238,12 @@ Peak RAM: ~554 MB working set on 4 GB devices. Models are loaded sequentially, n
 │   ├── learner-mobile/          Android app (Kotlin, Jetpack Compose, Material 3)
 │   │   ├── app/                 Main application module (DI, navigation, theme)
 │   │   ├── core/
-│   │   │   ├── ai/              AI pipeline — ExplanationEngine, embeddings, LLM, templates
+│   │   │   ├── ai/              AI pipeline — ExplanationEngine, ContentSearchEngine, embeddings, LLM, templates
 │   │   │   ├── common/          Shared utilities — Result type, dispatchers, storage
 │   │   │   └── data/            Data layer — profiles, packs, chat history, encryption
 │   │   └── feature/
 │   │       ├── chat/            Chat screen, Markdown renderer, onboarding
-│   │       ├── topics/          CAPS topic browser, suggested questions
+│   │       ├── topics/          CAPS topic browser, semantic search, suggested questions
 │   │       ├── profiles/        Learner profile management
 │   │       ├── preferences/     Learning preference settings
 │   │       └── library/         Content pack library browser
@@ -254,12 +273,15 @@ Key decisions are documented as Architecture Decision Records:
 |-----|----------|
 | [0003](ejs-docs/adr/0003-retrieval-first-architecture.md) | Retrieval-first architecture over general-purpose generation |
 | [0004](ejs-docs/adr/0004-content-pack-as-unit-of-knowledge.md) | Content packs as the unit of knowledge distribution |
-| [0006](ejs-docs/adr/0006-qwen25-1.5b-as-on-device-llm.md) | Qwen2.5-1.5B as on-device LLM |
-| [0007](ejs-docs/adr/0007-embedding-model-vector-store-storage-budget.md) | all-MiniLM-L6-v2 + FAISS for embedding and retrieval |
+| [0006](ejs-docs/adr/0006-qwen25-1.5b-as-on-device-llm.md) | Qwen2.5-1.5B as on-device LLM *(superseded by ADR-0012)* |
+| [0007](ejs-docs/adr/0007-embedding-model-vector-store-storage-budget.md) | all-MiniLM-L6-v2 + FAISS for embedding and retrieval *(superseded by ADR-0012)* |
 | [0008](ejs-docs/adr/0008-content-pack-sqlite-format.md) | SQLite `.pack` format with embedded FAISS index |
 | [0009](ejs-docs/adr/0009-manual-dependency-injection.md) | Manual DI via AppContainer over Hilt/Koin |
 | [0010](ejs-docs/adr/0010-aes256gcm-profile-encryption.md) | AES-256-GCM with Android Keystore for learner data |
 | [0011](ejs-docs/adr/0011-jinja2-style-template-engine.md) | Custom Jinja2-style prompt template engine |
+| [0012](ejs-docs/adr/0012-gemma4-unified-on-device-model.md) | Gemma 4 1B as unified on-device model (supersedes 0006 + 0007) |
+
+| [0012](ejs-docs/adr/0012-gemma4-unified-on-device-model.md) | Gemma 4 1B as unified on-device model (supersedes 0006 + 0007) |
 
 See the full [ADR index](ejs-docs/adr/) for all decisions.
 
@@ -273,6 +295,9 @@ See the full [ADR index](ejs-docs/adr/) for all decisions.
 | [Deployment Modes](docs/architecture/deployment-modes.md) | Phone-only, phone + edge, phone + edge + internet |
 | [Constraints](docs/product/constraints.md) | Hardware, connectivity, power, and deployment realities |
 | [User Personas](docs/product/user-personas.md) | Thandiwe, Sipho, Ms. Dlamini, and others |
+| [Feature PRD: Gemma 4](docs/product/feature-gemma4-semantic-search.md) | Gemma 4 migration and semantic search feature requirements |
+| [Device Validation Checklist](docs/DEVICE-VALIDATION-CHECKLIST.md) | Real-device test checklist for Gemma 4 migration (25 items) |
+| [Gemma 4 Evaluation](docs/research/gemma4-model-evaluation-and-semantic-search.md) | Model comparison, migration path, benchmark results |
 | [Coding Principles](docs/development/coding-principles.md) | Offline-first patterns, resource budgets, performance rules |
 | [Emulator Testing Runbook](docs/development/emulator-testing-runbook.md) | Step-by-step setup, sanity checks, and troubleshooting for Android emulator testing |
 | [Sideload Testing Runbook](docs/development/sideload-testing-runbook.md) | Real-device APK install and validation guide for collaborator testing |

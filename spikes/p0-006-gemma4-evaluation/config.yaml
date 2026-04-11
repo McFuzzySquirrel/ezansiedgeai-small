@@ -1,0 +1,148 @@
+# P0-006: Gemma 4 Model Evaluation Spike Configuration
+# ----------------------------------------------------
+# Benchmarks Gemma 4 1B (INT4, LiteRT) via MediaPipe GenAI SDK
+# against P0-001 (generation) and P0-002 (embedding) baselines.
+
+# Target device constraints (same as P0-001)
+target_device:
+  name: "Mobicel Hero / Samsung A04s class"
+  ram_total_mb: 4096
+  ram_budget_mb: 2048
+  cpu: "ARMv8-A (Cortex-A55/A76 class)"
+  gpu: "Adreno 610 / Mali-G57 class"
+  android_api: 29
+  storage_budget_mb: 150
+
+# Gemma 4 model configuration
+model:
+  id: "gemma4-1b-int4"
+  name: "Gemma 4 1B IT (INT4 quantized)"
+  format: "litert"             # LiteRT / TFLite flatbuffer
+  runtime: "mediapipe-genai"   # MediaPipe GenAI SDK
+  filename: "gemma4-1b-it-int4.task"
+  size_estimate_mb: 700
+  notes: >
+    Google's latest 1B instruction-tuned model. INT4 quantization via
+    LiteRT for on-device inference. Supports both generation and embedding
+    extraction from intermediate layers.
+
+# Generation benchmark parameters (mirrors P0-001)
+generation_benchmark:
+  max_tokens: 150
+  temperature: 0.3
+  top_p: 0.9
+  top_k: 40
+  seed: 42
+  warmup_runs: 1
+  benchmark_runs: 3
+  use_gpu_delegate: true
+  gpu_fallback_to_cpu: true
+
+# Embedding benchmark parameters (mirrors P0-002)
+embedding_benchmark:
+  embedding_dim: 768           # Default Gemma 4 embedding dim
+  test_dims: [256, 384, 512, 768]  # Test dimension reduction
+  distance_metric: "cosine"
+  normalize: true
+  benchmark_runs: 3
+  top_k_retrieval: 3
+  test_queries_count: 20
+
+# P0-001 baseline acceptance criteria
+generation_acceptance:
+  model_load_time_s: 5.0
+  generation_time_gpu_s: 5.0
+  generation_time_cpu_s: 10.0
+  peak_ram_mb: 1200
+  quality_score_min: 0.7       # Qualitative score from rubric
+
+# P0-002 baseline acceptance criteria
+embedding_acceptance:
+  embedding_time_ms: 100
+  retrieval_accuracy_top3: 0.8
+  parity_cosine_min: 0.99      # Python vs Android embedding parity
+
+# Platform acceptance criteria
+platform_acceptance:
+  apk_size_impact_mb: 15
+  gms_required: false
+  network_calls_allowed: 0
+
+# Prompt template for Gemma 4 chat format
+# Uses the Gemma 4 multi-turn chat template
+prompt_template: |
+  <start_of_turn>user
+  You are a Grade 6 Maths tutor helping South African learners.
+  Answer ONLY using the provided content.
+  If the content does not cover the question, say so.
+  Keep your explanation clear and use a worked example.
+
+  Content:
+  {content}
+
+  Question:
+  {question}
+  <end_of_turn>
+  <start_of_turn>model
+
+# Test prompts from P0-001 (curriculum-aligned CAPS content)
+test_prompts:
+  - id: "fractions-add"
+    content: "To add fractions with different denominators, find the lowest common denominator (LCD). Multiply each fraction's numerator and denominator to create equivalent fractions with the LCD. Then add the numerators and keep the denominator."
+    question: "How do I add 2/3 and 1/4?"
+    expected_concepts: ["LCD", "equivalent fractions", "12", "8/12", "3/12", "11/12"]
+
+  - id: "decimals-multiply"
+    content: "To multiply decimals, first multiply the numbers as if they were whole numbers. Then count the total decimal places in both factors and place the decimal point in the product so it has that many decimal places."
+    question: "How do I multiply 2.5 by 1.3?"
+    expected_concepts: ["whole numbers", "25 × 13", "325", "2 decimal places", "3.25"]
+
+  - id: "area-rectangle"
+    content: "The area of a rectangle is calculated by multiplying its length by its width. Area = length × width. The answer is given in square units (cm², m²)."
+    question: "What is the area of a rectangle that is 8 cm long and 5 cm wide?"
+    expected_concepts: ["length × width", "8 × 5", "40", "cm²", "square"]
+
+  - id: "ratio-simplify"
+    content: "A ratio compares two quantities. To simplify a ratio, divide both parts by their highest common factor (HCF). For example, 12:8 simplified by dividing both by 4 gives 3:2."
+    question: "Simplify the ratio 15:25."
+    expected_concepts: ["HCF", "5", "divide both", "3:5"]
+
+  - id: "percentage-convert"
+    content: "To convert a fraction to a percentage, divide the numerator by the denominator and multiply by 100. For example, 3/4 = 0.75 × 100 = 75%."
+    question: "Convert 2/5 to a percentage."
+    expected_concepts: ["divide", "0.4", "× 100", "40%"]
+
+  - id: "symmetry-line"
+    content: "A line of symmetry divides a shape into two identical halves that are mirror images of each other. A square has 4 lines of symmetry. A rectangle has 2. An equilateral triangle has 3."
+    question: "How many lines of symmetry does a square have?"
+    expected_concepts: ["4", "mirror", "identical halves", "diagonal", "horizontal", "vertical"]
+
+  - id: "data-mean"
+    content: "The mean (average) is calculated by adding all the values together and dividing by the number of values. Mean = sum of values ÷ number of values."
+    question: "Find the mean of 4, 8, 6, 10, and 12."
+    expected_concepts: ["add all", "40", "÷ 5", "8", "average"]
+
+  - id: "volume-cube"
+    content: "The volume of a rectangular prism (box shape) is found by multiplying length × width × height. Volume is measured in cubic units (cm³, m³)."
+    question: "What is the volume of a box that is 3 cm long, 4 cm wide, and 5 cm tall?"
+    expected_concepts: ["length × width × height", "3 × 4 × 5", "60", "cm³"]
+
+  - id: "number-patterns"
+    content: "In a number pattern, each term follows a rule. To find the rule, look at the difference between consecutive terms. If the difference is constant, the rule is 'add' or 'subtract' that amount."
+    question: "What is the next number in the pattern: 3, 7, 11, 15, ...?"
+    expected_concepts: ["difference", "4", "add 4", "19", "constant"]
+
+  - id: "time-elapsed"
+    content: "To calculate elapsed time, subtract the start time from the end time. If crossing noon or midnight, be careful with AM/PM. You can count forward from the start time to the end time."
+    question: "A movie starts at 10:45 AM and ends at 1:15 PM. How long is the movie?"
+    expected_concepts: ["count forward", "2 hours 30 minutes", "subtract", "PM"]
+
+  - id: "capacity-convert"
+    content: "1 litre = 1000 millilitres (ml). To convert litres to millilitres, multiply by 1000. To convert millilitres to litres, divide by 1000."
+    question: "Convert 2.5 litres to millilitres."
+    expected_concepts: ["× 1000", "2500", "ml", "millilitres"]
+
+  - id: "geometry-angles"
+    content: "The angles in a triangle always add up to 180°. A right angle is 90°. An acute angle is less than 90°. An obtuse angle is between 90° and 180°."
+    question: "A triangle has angles of 60° and 80°. What is the third angle?"
+    expected_concepts: ["180°", "60 + 80", "140", "180 - 140", "40°"]

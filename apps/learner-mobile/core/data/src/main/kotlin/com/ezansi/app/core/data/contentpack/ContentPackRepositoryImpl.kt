@@ -147,6 +147,11 @@ class ContentPackRepositoryImpl(
      * the pack's pre-computed embeddings and FAISS index. The relevance
      * score will then reflect actual cosine similarity (0.0–1.0).
      *
+     * **Compatibility gate (EMBEDDING_CONTRACT.md §6.3):** Before querying,
+     * the pack's manifest is checked for embedding compatibility. Packs
+     * with incompatible schema versions, embedding dimensions, or models
+     * are rejected with a clear error message — no retrieval is attempted.
+     *
      * @param packId Pack to search within.
      * @param query The learner's question in natural language.
      * @param topK Maximum number of chunks to return.
@@ -158,6 +163,23 @@ class ContentPackRepositoryImpl(
     ): EzansiResult<List<ContentChunk>> {
         return withContext(dispatcherProvider.io) {
             try {
+                // Gate retrieval on embedding compatibility (EMBEDDING_CONTRACT §6.3)
+                val compatibility = packManager.checkPackCompatibility(packId)
+                if (compatibility !is PackCompatibility.Compatible) {
+                    val message = when (compatibility) {
+                        is PackCompatibility.IncompatibleSchema -> compatibility.message
+                        is PackCompatibility.IncompatibleDimension -> compatibility.message
+                        is PackCompatibility.IncompatibleModel -> compatibility.message
+                        is PackCompatibility.IncompatibleVersion -> compatibility.message
+                        else -> "Content pack is incompatible"
+                    }
+                    Log.w(TAG, "Rejecting retrieval for pack '$packId': $message")
+                    return@withContext EzansiResult.Error(
+                        "This content pack needs to be updated for the new AI engine. " +
+                            "Please download the updated version.",
+                    )
+                }
+
                 val database = packManager.openPack(packId)
                     ?: return@withContext EzansiResult.Error(
                         "Content pack not found: $packId",

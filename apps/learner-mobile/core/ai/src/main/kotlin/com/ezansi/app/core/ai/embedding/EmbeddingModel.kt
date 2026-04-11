@@ -69,8 +69,18 @@ interface EmbeddingModel {
  * Observable runtime mode for embedding inference.
  */
 enum class EmbeddingRuntimeMode {
+    /** Real ONNX Runtime inference available (all-MiniLM-L6-v2). */
     REAL_ONNX,
+
+    /** Real MediaPipe GenAI embedding via Gemma 4. */
+    REAL_MEDIAPIPE,
+
+    /** Deterministic hash-based fallback (no semantic meaning). */
     DETERMINISTIC_FALLBACK,
+
+    /** Mock engine for development and testing. */
     MOCK,
+
+    /** Runtime mode not yet determined. */
     UNKNOWN,
 }

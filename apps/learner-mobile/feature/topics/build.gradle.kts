@@ -29,6 +29,7 @@ android {
 
 dependencies {
     implementation(project(":core:common"))
+    implementation(project(":core:ai"))
     implementation(project(":core:data"))
 
     implementation(libs.androidx.core.ktx)
@@ -50,6 +51,7 @@ dependencies {
     testImplementation(libs.junit5.api)
     testRuntimeOnly(libs.junit5.engine)
     testImplementation(libs.kotlin.test)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(platform(libs.compose.bom))
 }
 

@@ -2,26 +2,41 @@
 """
 P0-004: Content pack builder.
 
-Reads a chunks.json, embeds content using all-MiniLM-L6-v2,
-builds a FAISS Flat index, and writes a single SQLite .pack file.
+Reads a chunks.json, embeds content, builds a FAISS Flat index, and writes a
+single SQLite .pack file.
 
-SQLite schema (schema_version=1):
+Embedding models:
+  gemma4 (default) — Gemma 4 1B hash-based deterministic embedding (768-dim).
+                      Uses gemma_embedding.py; no ML model download needed.
+                      Produces schema_version=2 packs.
+  minilm  (legacy) — all-MiniLM-L6-v2 via sentence-transformers (384-dim).
+                      Requires sentence-transformers installed.
+                      Produces schema_version=1 packs.
+
+SQLite schema (4 tables — see EMBEDDING_CONTRACT.md):
   manifest     — key/value pack metadata
   chunks       — content records with SHA-256 per chunk
   embeddings   — per-chunk embedding BLOBs (float32, L2-normalised)
   faiss_indexes — serialised FAISS IndexFlatIP + chunk_order JSON
 
 Usage:
-  # Using a locally downloaded model (recommended — avoids re-download):
-  python build_pack.py \\
-      --chunks content/maths-grade6-caps-fractions-v0.1/chunks.json \\
-      --output ../../content-packs/maths-grade6-caps-fractions-v0.1.pack \\
-      --models-dir ../../spikes/p0-002-embedding-retrieval/models
-
-  # Allow download from Hugging Face if local model not found:
+  # Gemma 4 mode (default — no ML model download):
   python build_pack.py \\
       --chunks content/maths-grade6-caps-fractions-v0.1/chunks.json \\
       --output ../../content-packs/maths-grade6-caps-fractions-v0.1.pack
+
+  # MiniLM legacy mode (requires sentence-transformers):
+  python build_pack.py \\
+      --chunks content/maths-grade6-caps-fractions-v0.1/chunks.json \\
+      --output ../../content-packs/maths-grade6-caps-fractions-v0.1.pack \\
+      --embedding-model minilm \\
+      --models-dir ../../spikes/p0-002-embedding-retrieval/models
+
+  # Gemma 4 with custom dimension:
+  python build_pack.py \\
+      --chunks content/maths-grade6-caps-fractions-v0.1/chunks.json \\
+      --output ../../content-packs/maths-grade6-caps-fractions-v0.1.pack \\
+      --embedding-dim 384
 """
 
 import argparse
@@ -37,10 +52,17 @@ from pathlib import Path
 
 import faiss
 import numpy as np
-from sentence_transformers import SentenceTransformer
 
-EMBEDDING_MODEL_ID = "sentence-transformers/all-MiniLM-L6-v2"
-EMBEDDING_DIM = 384
+# ── Embedding model constants ────────────────────────────────────────
+# MiniLM (legacy, schema v1)
+MINILM_MODEL_ID = "sentence-transformers/all-MiniLM-L6-v2"
+MINILM_DIM = 384
+
+# Gemma 4 (default, schema v2) — constants imported from gemma_embedding
+# at embed time to keep this file's top-level imports light.
+
+SUPPORTED_DIMS = (256, 384, 512, 768)
+DEFAULT_DIMS = {"gemma4": 768, "minilm": 384}
 BATCH_SIZE = 8
 
 
@@ -56,19 +78,44 @@ def load_chunks(chunks_path: Path) -> tuple[dict, list[dict]]:
     return data, chunks
 
 
-def resolve_model(models_dir: Path | None) -> str:
-    """Return local model path if available, else Hugging Face model ID."""
+def resolve_minilm_model(models_dir: Path | None) -> str:
+    """Return local MiniLM model path if available, else Hugging Face model ID."""
     if models_dir:
         local = models_dir / "all-minilm-l6-v2"
         if local.exists():
             print(f"  Using local model: {local}")
             return str(local)
         print(f"  Local model not found at {local} — will download from Hugging Face")
-    return EMBEDDING_MODEL_ID
+    return MINILM_MODEL_ID
 
 
-def embed_chunks(chunks: list[dict], models_dir: Path | None) -> np.ndarray:
-    model_id = resolve_model(models_dir)
+def embed_chunks_gemma4(chunks: list[dict], dim: int) -> np.ndarray:
+    """Embed chunks using the Gemma 4 deterministic embedding (no ML model needed)."""
+    from gemma_embedding import embed_batch, EMBEDDING_MODEL_ID as GEMMA_MODEL_ID
+
+    texts = [c["content"] for c in chunks]
+    print(f"  Embedding model: {GEMMA_MODEL_ID} (hash-based deterministic)")
+    print(f"  Embedding {len(texts)} chunks (dim={dim})...")
+    t0 = time.perf_counter()
+    embeddings = embed_batch(texts, dim=dim)
+    elapsed = time.perf_counter() - t0
+    print(f"  Embedded in {elapsed:.3f}s ({elapsed / len(texts) * 1000:.1f}ms per chunk)")
+    return embeddings  # shape (N, dim), L2-normalised, float32
+
+
+def embed_chunks_minilm(chunks: list[dict], models_dir: Path | None) -> np.ndarray:
+    """Embed chunks using all-MiniLM-L6-v2 (legacy — requires sentence-transformers)."""
+    try:
+        from sentence_transformers import SentenceTransformer
+    except ImportError:
+        print(
+            "ERROR: sentence-transformers is required for --embedding-model minilm.\n"
+            "Install with: pip install sentence-transformers",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    model_id = resolve_minilm_model(models_dir)
     print(f"  Loading embedding model: {model_id}")
     t0 = time.perf_counter()
     model = SentenceTransformer(model_id)
@@ -89,11 +136,28 @@ def embed_chunks(chunks: list[dict], models_dir: Path | None) -> np.ndarray:
     return embeddings.astype(np.float32)  # shape (N, 384), L2-normalised
 
 
+def embed_chunks(
+    chunks: list[dict],
+    embedding_model: str,
+    embedding_dim: int,
+    models_dir: Path | None,
+) -> np.ndarray:
+    """Route embedding to the selected model backend."""
+    if embedding_model == "gemma4":
+        return embed_chunks_gemma4(chunks, dim=embedding_dim)
+    else:
+        return embed_chunks_minilm(chunks, models_dir=models_dir)
+
+
 def build_faiss_index(embeddings: np.ndarray) -> bytes:
-    """Build a FAISS IndexFlatIP and serialise it to bytes."""
+    """Build a FAISS IndexFlatIP and serialise it to bytes.
+
+    The index dimension is inferred from the embedding shape.
+    """
+    dim = embeddings.shape[1]
     vecs = embeddings.copy().astype(np.float32)
     faiss.normalize_L2(vecs)
-    index = faiss.IndexFlatIP(EMBEDDING_DIM)
+    index = faiss.IndexFlatIP(dim)
     index.add(vecs)
     with tempfile.NamedTemporaryFile(suffix=".faiss", delete=False) as tmp:
         tmp_path = tmp.name
@@ -111,6 +175,8 @@ def write_pack(
     chunks: list[dict],
     embeddings: np.ndarray,
     faiss_bytes: bytes,
+    embedding_model: str,
+    embedding_dim: int,
 ) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     if output_path.exists():
@@ -154,6 +220,21 @@ def write_pack(
         );
     """)
 
+    # Compute model-specific manifest fields
+    if embedding_model == "gemma4":
+        from gemma_embedding import (
+            EMBEDDING_MODEL_ID as GEMMA_MODEL_ID,
+            EMBEDDING_MODEL_VERSION as GEMMA_MODEL_VERSION,
+            SCHEMA_VERSION as GEMMA_SCHEMA_VERSION,
+        )
+        schema_version = str(GEMMA_SCHEMA_VERSION)
+        model_name = GEMMA_MODEL_ID
+        model_version = GEMMA_MODEL_VERSION
+    else:
+        schema_version = "1"
+        model_name = MINILM_MODEL_ID
+        model_version = MINILM_MODEL_ID  # no separate version field for v1
+
     manifest_rows = [
         ("pack_id", pack_metadata["pack_id"]),
         ("version", pack_metadata["version"]),
@@ -163,10 +244,14 @@ def write_pack(
         ("curriculum", pack_metadata["curriculum"]),
         ("created_at", pack_metadata["created_at"]),
         ("chunk_count", str(len(chunks))),
-        ("embedding_model", EMBEDDING_MODEL_ID),
-        ("embedding_dim", str(EMBEDDING_DIM)),
-        ("schema_version", "1"),
+        ("embedding_model", model_name),
+        ("embedding_dim", str(embedding_dim)),
+        ("schema_version", schema_version),
     ]
+    # Add embedding_model_version for schema v2+
+    if embedding_model == "gemma4":
+        manifest_rows.append(("embedding_model_version", model_version))
+
     con.executemany("INSERT INTO manifest VALUES (?, ?)", manifest_rows)
 
     for chunk in chunks:
@@ -188,14 +273,14 @@ def write_pack(
         vec = embeddings[i].astype(np.float32)
         con.execute(
             "INSERT INTO embeddings (chunk_id, model_name, dim, vector) VALUES (?, ?, ?, ?)",
-            (chunk["id"], EMBEDDING_MODEL_ID, EMBEDDING_DIM, vec.tobytes()),
+            (chunk["id"], model_name, embedding_dim, vec.tobytes()),
         )
 
     chunk_order = json.dumps([c["id"] for c in chunks])
     con.execute(
         "INSERT INTO faiss_indexes (store_type, model_name, index_data, chunk_order) "
         "VALUES (?, ?, ?, ?)",
-        ("faiss-flat", EMBEDDING_MODEL_ID, faiss_bytes, chunk_order),
+        ("faiss-flat", model_name, faiss_bytes, chunk_order),
     )
 
     con.commit()
@@ -211,23 +296,43 @@ def main() -> None:
     parser.add_argument("--chunks", required=True, help="Path to chunks.json")
     parser.add_argument("--output", required=True, help="Output .pack file path")
     parser.add_argument(
+        "--embedding-model",
+        choices=["gemma4", "minilm"],
+        default="gemma4",
+        help="Embedding model to use (default: gemma4)",
+    )
+    parser.add_argument(
+        "--embedding-dim",
+        type=int,
+        choices=list(SUPPORTED_DIMS),
+        default=None,
+        help="Embedding dimension override (default: 768 for gemma4, 384 for minilm)",
+    )
+    parser.add_argument(
         "--models-dir",
         default=None,
-        help="Optional path to local sentence-transformers models directory",
+        help="Optional path to local sentence-transformers models directory (minilm mode only)",
     )
     args = parser.parse_args()
 
     chunks_path = Path(args.chunks)
     output_path = Path(args.output)
     models_dir = Path(args.models_dir) if args.models_dir else None
+    embedding_model = args.embedding_model
+    embedding_dim = args.embedding_dim if args.embedding_dim else DEFAULT_DIMS[embedding_model]
 
     if not chunks_path.exists():
         print(f"ERROR: chunks file not found: {chunks_path}", file=sys.stderr)
         sys.exit(1)
 
+    schema_version = "2" if embedding_model == "gemma4" else "1"
+
     print(f"\n=== Content Pack Builder (P0-004) ===")
-    print(f"Input:  {chunks_path}")
-    print(f"Output: {output_path}\n")
+    print(f"Input:           {chunks_path}")
+    print(f"Output:          {output_path}")
+    print(f"Embedding model: {embedding_model}")
+    print(f"Embedding dim:   {embedding_dim}")
+    print(f"Schema version:  {schema_version}\n")
 
     data, chunks = load_chunks(chunks_path)
 
@@ -242,7 +347,7 @@ def main() -> None:
     }
 
     print("\n--- Embedding ---")
-    embeddings = embed_chunks(chunks, models_dir)
+    embeddings = embed_chunks(chunks, embedding_model, embedding_dim, models_dir)
 
     print("\n--- Building FAISS Flat index ---")
     t0 = time.perf_counter()
@@ -250,7 +355,15 @@ def main() -> None:
     print(f"  Built in {(time.perf_counter() - t0) * 1000:.1f}ms ({len(faiss_bytes):,} bytes)")
 
     print("\n--- Writing pack ---")
-    write_pack(output_path, pack_metadata, chunks, embeddings, faiss_bytes)
+    write_pack(
+        output_path,
+        pack_metadata,
+        chunks,
+        embeddings,
+        faiss_bytes,
+        embedding_model=embedding_model,
+        embedding_dim=embedding_dim,
+    )
 
     size_bytes = output_path.stat().st_size
     size_kb = size_bytes / 1024
@@ -259,7 +372,8 @@ def main() -> None:
     print(f"  Size:           {size_kb:.1f} KB ({size_kb / 1024:.3f} MB)")
     print(f"  Chunks:         {len(chunks)}")
     print(f"  pack_id:        {pack_metadata['pack_id']}")
-    print(f"  schema_version: 1")
+    print(f"  schema_version: {schema_version}")
+    print(f"  embedding:      {embedding_model} ({embedding_dim}-dim)")
     print(f"\nValidate with:")
     print(
         f"  python validate_pack.py"

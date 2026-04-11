@@ -3,3 +3,6 @@
 
 # Local editor workspace files
 .vscode/
+.ejs-session-active
+.ejs-session-incomplete
+logs/*.jsonl

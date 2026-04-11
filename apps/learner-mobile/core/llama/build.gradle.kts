@@ -1,3 +1,6 @@
+// DEPRECATED: Legacy fallback module — remove after real-device Gemma 4 validation
+// This module provides llama.cpp JNI bindings for Qwen2.5-1.5B text generation.
+// Superseded by MediaPipe GenAI SDK (Gemma 4) in :core:ai.
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)

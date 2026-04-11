@@ -5,12 +5,33 @@ import com.ezansi.app.core.ai.retrieval.RetrievalResult
 import com.ezansi.app.core.data.LearnerPreference
 
 /**
+ * Chat format used to wrap the prompt for a specific LLM family.
+ *
+ * Each LLM family expects a different set of special tokens around the
+ * system, user, and assistant turns. The [PromptBuilder] uses this enum
+ * to select the correct wrapper at prompt-build time.
+ */
+enum class ChatFormat {
+    /** Qwen2.5 ChatML: `<|im_start|>system/user/assistant<|im_end|>` */
+    QWEN_CHATML,
+
+    /**
+     * Gemma 4 turn format: `<start_of_turn>user/<end_of_turn>/<start_of_turn>model`.
+     *
+     * Gemma models have no separate system role. System instructions are
+     * prepended inside the first user turn, separated by a blank line.
+     */
+    GEMMA_TURN,
+}
+
+/**
  * Builds grounded LLM prompts using data-driven Jinja2-style templates.
  *
  * The prompt builder is the third step in the RAG pipeline:
  * question → embed → retrieve → **prompt** → generate.
  *
- * It constructs a Qwen2.5 chat-template-formatted prompt that:
+ * It constructs a chat-formatted prompt (Qwen2.5 ChatML or Gemma 4 turn
+ * format) that:
  * 1. Instructs the model to act as a Grade 6 maths tutor
  * 2. Includes retrieved content chunks as the ONLY knowledge source
  * 3. Adapts language and style to the learner's preferences via templates
@@ -34,7 +55,7 @@ import com.ezansi.app.core.data.LearnerPreference
  * | System prompt     | ~200 tokens | Personality + preferences + grounding rules |
  * | User content      | ~1,300 tokens | Retrieved chunks + learner question |
  * | Generation budget | ~500 tokens | Reserved for LLM response |
- * | Format overhead   | ~48 tokens  | ChatML delimiters |
+ * | Format overhead   | ~48 tokens  | ChatML/turn delimiters |
  *
  * If chunks exceed the user content budget, lowest-scored chunks are
  * dropped first. The last remaining chunk may be truncated if still
@@ -46,9 +67,11 @@ import com.ezansi.app.core.data.LearnerPreference
  * **always** appended to the system prompt. This is architecturally enforced
  * — neither custom templates nor preference injection can omit it.
  *
- * ## Template Format
+ * ## Chat Formats
  *
- * Uses Qwen2.5 ChatML-style format:
+ * The builder supports two chat formats, selectable via [chatFormat]:
+ *
+ * **Qwen2.5 ChatML** ([ChatFormat.QWEN_CHATML], default):
  * ```
  * <|im_start|>system
  * {system_prompt}<|im_end|>
@@ -57,12 +80,23 @@ import com.ezansi.app.core.data.LearnerPreference
  * <|im_start|>assistant
  * ```
  *
+ * **Gemma 4 Turn** ([ChatFormat.GEMMA_TURN]):
+ * ```
+ * <start_of_turn>user
+ * {system_prompt}
+ *
+ * {user_prompt}<end_of_turn>
+ * <start_of_turn>model
+ * ```
+ *
  * @param templateEngine The template renderer (injected for testability).
+ * @param chatFormat The chat format to use for prompt wrapping (default: [ChatFormat.QWEN_CHATML]).
  * @see com.ezansi.app.core.ai.ExplanationEngine
  * @see DefaultTemplates for bundled template definitions
  */
 class PromptBuilder(
     private val templateEngine: TemplateEngine = TemplateEngine(),
+    private val chatFormat: ChatFormat = ChatFormat.QWEN_CHATML,
 ) {
 
     companion object {
@@ -85,6 +119,10 @@ class PromptBuilder(
         // Qwen2.5 ChatML delimiters
         private const val IM_START = "<|im_start|>"
         private const val IM_END = "<|im_end|>"
+
+        // Gemma 4 turn delimiters
+        private const val START_OF_TURN = "<start_of_turn>"
+        private const val END_OF_TURN = "<end_of_turn>"
 
         // Default preference values when learner has no preferences set
         private const val DEFAULT_EXPLANATION_STYLE = "step-by-step"
@@ -126,12 +164,12 @@ class PromptBuilder(
      * 2. Calculate remaining token budget for user content
      * 3. Fit chunks within budget, dropping lowest-scored first if needed
      * 4. Render user prompt from template (chunks + question)
-     * 5. Wrap in Qwen2.5 ChatML format
+     * 5. Wrap in the configured chat format (Qwen2.5 ChatML or Gemma 4 Turn)
      *
      * @param question The learner's question in natural language.
      * @param retrievedChunks Chunks ranked by similarity (highest first).
      * @param preferences The learner's active preferences, or null for defaults.
-     * @return A complete Qwen2.5 ChatML-formatted prompt string ready for inference.
+     * @return A complete chat-formatted prompt string ready for inference.
      */
     fun buildGroundedPromptFromRetrievedChunks(
         question: String,
@@ -155,8 +193,8 @@ class PromptBuilder(
         // Step 4: Render the user prompt with fitted chunks
         val userPrompt = renderUserPrompt(question, fittedChunks)
 
-        // Step 5: Apply Qwen2.5 ChatML format
-        return formatAsChatMl(systemPrompt, userPrompt)
+        // Step 5: Apply the configured chat format
+        return formatPrompt(systemPrompt, userPrompt)
     }
 
     /**
@@ -324,7 +362,23 @@ class PromptBuilder(
         }
     }
 
-    // ── ChatML formatting ───────────────────────────────────────────
+    // ── Chat format wrapping ────────────────────────────────────────
+
+    /**
+     * Wraps system and user prompts in the configured chat format.
+     *
+     * Delegates to format-specific methods based on [chatFormat].
+     *
+     * @param systemPrompt The rendered system prompt (personality + grounding).
+     * @param userPrompt The rendered user prompt (chunks + question).
+     * @return A fully formatted prompt string ready for inference.
+     */
+    private fun formatPrompt(systemPrompt: String, userPrompt: String): String {
+        return when (chatFormat) {
+            ChatFormat.QWEN_CHATML -> formatAsQwenChatMl(systemPrompt, userPrompt)
+            ChatFormat.GEMMA_TURN -> formatAsGemmaTurn(systemPrompt, userPrompt)
+        }
+    }
 
     /**
      * Wraps system and user prompts in Qwen2.5 ChatML format.
@@ -333,7 +387,7 @@ class PromptBuilder(
      * The trailing `<|im_start|>assistant\n` signals the model to begin
      * generating its response.
      */
-    private fun formatAsChatMl(systemPrompt: String, userPrompt: String): String {
+    private fun formatAsQwenChatMl(systemPrompt: String, userPrompt: String): String {
         return buildString {
             append("${IM_START}system\n")
             append(systemPrompt.trimEnd())
@@ -342,6 +396,25 @@ class PromptBuilder(
             append(userPrompt.trim())
             append("${IM_END}\n")
             append("${IM_START}assistant\n")
+        }
+    }
+
+    /**
+     * Wraps system and user prompts in Gemma 4 turn format.
+     *
+     * Gemma models do **not** support a separate system role. Instead,
+     * system instructions are prepended inside the first user turn,
+     * separated from the user content by a blank line. The trailing
+     * `<start_of_turn>model\n` signals the model to begin generating.
+     */
+    private fun formatAsGemmaTurn(systemPrompt: String, userPrompt: String): String {
+        return buildString {
+            append("${START_OF_TURN}user\n")
+            append(systemPrompt.trimEnd())
+            append("\n\n")
+            append(userPrompt.trim())
+            append("${END_OF_TURN}\n")
+            append("${START_OF_TURN}model\n")
         }
     }
 

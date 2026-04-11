@@ -5,7 +5,7 @@
 **Product Name:** eZansiEdgeAI  
 **Summary:** An offline-first, phone-first AI learning assistant that provides CAPS-aligned Grade 6 Mathematics explanations to South African learners. The system runs entirely on low-end Android phones without internet, accounts, or subscriptions. An on-device language model explains curriculum content retrieved from verified content packs — it never invents answers. An optional school edge device provides speech services and content distribution but is never required.  
 **Target Platform:** Android 10+ (API 29+), 4 GB RAM, ARMv8-A 64-bit phones; optional Linux edge device (Raspberry Pi 5 / refurbished laptop).  
-**Key Constraints:** Fully offline after install, zero cost to learner/teacher/school, no accounts or tracking, all data stays on-device, ≤1.4 GB total first-launch storage, ≤2 GB RAM working set, POPIA-compliant by design.
+**Key Constraints:** Fully offline after install, zero cost to learner/teacher/school, no accounts or tracking, all data stays on-device, ≤1.2 GB total first-launch storage (Gemma 4 1B ~600 MB + packs), ≤1.2 GB RAM working set (unified model), POPIA-compliant by design.
 
 ---
 
@@ -14,6 +14,7 @@
 | Version | Date       | Author          | Changes                                    |
 |---------|------------|-----------------|---------------------------------------------|
 | 1.0     | 2026-03-14 | Copilot + Human | Initial PRD — consolidated from existing docs, ADRs, and spike results |
+| 1.1     | 2026-04-11 | Copilot + Human | Phase 1 marked complete. AI stack updated: Gemma 4 1B replaces Qwen2.5+MiniLM (ADR-0012). Semantic search added. See feature-gemma4-semantic-search.md |
 
 ---
 
@@ -566,16 +567,18 @@ ezansiedgeai-small/
 - [x] P0-005: E2E pipeline smoke test — 5/5 passed, 18.4 s avg on dev CPU
 - [ ] P0-003: Battery & thermal validation — deferred to Phase 3 (requires real hardware)
 
-### Phase 1: Offline Learning Loop (Weeks 3–6)
+### Phase 1: Offline Learning Loop (Weeks 3–6) ✅ COMPLETE
 
-- [ ] P0-101: Android app scaffold (Kotlin, min SDK 29, no GMS, sideload-ready APK)
-- [ ] P0-102: Chat interface (text I/O, Markdown+math rendering, history persistence, 720p, 48×48 dp)
-- [ ] P0-103: Content pack loader (verify SHA-256 manifest, error handling, query metadata)
-- [ ] P0-104: Retrieval + explanation pipeline integration (embed → retrieve → prompt → generate → display, < 10 s)
-- [ ] P0-105: Learner profile — basic (name selection, encrypted, multi-profile, ≤2 taps)
-- [ ] P1-106: Topic browser (CAPS structure navigation, contextual questions, zero-pack state)
-- [ ] P1-107: Prompt template engine (data-driven Jinja2, preference injection, grounding enforcement, context-window fit)
-- [ ] P2-108: Onboarding flow (zero-step, optional dismissible tooltip, no modals/permissions)
+- [x] P0-101: Android app scaffold (Kotlin, min SDK 29, no GMS, sideload-ready APK)
+- [x] P0-102: Chat interface (text I/O, Markdown+math rendering, history persistence, 720p, 48×48 dp)
+- [x] P0-103: Content pack loader (verify SHA-256 manifest, error handling, query metadata)
+- [x] P0-104: Retrieval + explanation pipeline integration (embed → retrieve → prompt → generate → display, < 10 s)
+- [x] P0-105: Learner profile — basic (name selection, encrypted, multi-profile, ≤2 taps)
+- [x] P1-106: Topic browser (CAPS structure navigation, contextual questions, zero-pack state)
+- [x] P1-107: Prompt template engine (data-driven Jinja2, preference injection, grounding enforcement, context-window fit)
+- [x] P2-108: Onboarding flow (zero-step, optional dismissible tooltip, no modals/permissions)
+
+> **Gemma 4 Migration (post-Phase 1):** The AI model stack was migrated from Qwen2.5-1.5B + all-MiniLM-L6-v2 to Gemma 4 1B (unified model for generation + embedding) via MediaPipe GenAI SDK. User-facing semantic search was added. See [Feature PRD](feature-gemma4-semantic-search.md) and [ADR-0012](../../ejs-docs/adr/0012-gemma4-unified-on-device-model.md).
 
 ### Phase 2: Content + Personalisation (Weeks 7–10)
 
@@ -763,8 +766,8 @@ These are explicitly anti-metrics — optimising for them would harm the product
 | 4 | What is the target pilot size (number of learners, schools, duration)? | 1 school, 20–40 learners, 1 teacher, 4-week duration |
 | 5 | How will content quality be assured at scale (beyond Dr. Ndaba persona)? | V1: single reviewer; V2: review workflow with multiple curriculum specialists |
 | 6 | Should the app support Android Go edition (ultra-low-end devices)? | Not in V1 — Android Go typically has <3 GB RAM, below minimum |
-| 7 | What happens when models update (new Qwen version)? Re-benchmark required? | Yes — ADR-0006 states no model switch without full benchmark re-run |
-| 8 | Is llama.cpp the right runtime for Android, or should ONNX Runtime be primary? | llama.cpp for V1 (validated); re-evaluate for V2 if ONNX performance improves on ARM |
+| 7 | What happens when models update (new Qwen version)? Re-benchmark required? | Yes — ADR-0006 states no model switch without full benchmark re-run. **Update:** Model switched to Gemma 4 1B (ADR-0012 supersedes ADR-0006). Full spike + benchmark was run (P0-006). |
+| 8 | Is llama.cpp the right runtime for Android, or should ONNX Runtime be primary? | llama.cpp for V1 (validated); re-evaluate for V2 if ONNX performance improves on ARM. **Update:** Both replaced by MediaPipe GenAI SDK / LiteRT (ADR-0012). Legacy deps deprecated. |
 | 9 | How will the project handle content for topics where explanations require visual diagrams? | V1: text + inline math only; V2: SVG/image support in content packs |
 | 10 | What is the sustainability model post-V1 (funding, maintenance, content updates)? | Deferred — V1 validates feasibility; sustainability plan required before V2 |
 

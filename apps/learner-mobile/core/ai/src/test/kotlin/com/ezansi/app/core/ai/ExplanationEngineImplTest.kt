@@ -27,10 +27,10 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
-import org.junit.jupiter.api.extension.ExtendWith
-import org.robolectric.junit5.RobolectricExtension
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
@@ -45,7 +45,7 @@ import kotlin.test.assertTrue
  * Runs under Robolectric for [StorageManager] (requires Context) and
  * android.util.Log usage throughout the implementation.
  */
-@ExtendWith(RobolectricExtension::class)
+@RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29])
 @DisplayName("ExplanationEngineImpl")
 class ExplanationEngineImplTest {
@@ -172,6 +172,18 @@ class ExplanationEngineImplTest {
         preferenceRepository = preferenceRepo,
         storageManager = storageManager,
         dispatcherProvider = testDispatchers,
+    )
+
+    private fun createUnifiedEngine(): ExplanationEngineImpl = ExplanationEngineImpl(
+        embeddingModel = embeddingModel,
+        contentRetriever = contentRetriever,
+        promptBuilder = PromptBuilder(),
+        llmEngine = llmEngine,
+        contentPackRepository = contentPackRepo,
+        preferenceRepository = preferenceRepo,
+        storageManager = storageManager,
+        dispatcherProvider = testDispatchers,
+        unifiedModel = true,
     )
 
     // ── Happy path ──────────────────────────────────────────────────
@@ -449,6 +461,86 @@ class ExplanationEngineImplTest {
             // After pipeline, embedding may be unloaded (sequential loading)
             // but it WAS loaded during the pipeline
             assertTrue(true, "Pipeline completed without crash — embedding was loaded")
+        }
+    }
+
+    // ── Unified model (Gemma 4) ─────────────────────────────────────
+
+    @Nested
+    @DisplayName("Unified model loading (Gemma 4)")
+    inner class UnifiedModelTests {
+
+        @Test
+        @DisplayName("unified model skips embedding unload — embedding stays loaded after pipeline")
+        fun unifiedModelSkipsEmbeddingUnload() = runTest(testDispatcher) {
+            contentPackRepo.packs = listOf(testPackMetadata)
+            contentRetriever.results = listOf(
+                RetrievalResult("chunk-1", 0.85f, testChunk),
+            )
+            llmEngine.responseTokens = listOf("Step", " ", "1")
+            embeddingModel.mode = EmbeddingRuntimeMode.DETERMINISTIC_FALLBACK
+            llmEngine.mode = LlmRuntimeMode.MOCK
+
+            val engine = createUnifiedEngine()
+            val results = engine.explain("What are fractions?", "profile-1").toList()
+
+            // Pipeline should complete successfully
+            val complete = results.filterIsInstance<ExplanationResult.Complete>()
+            assertTrue(complete.isNotEmpty(), "Expected pipeline to complete")
+
+            // With unified model, embedding model should NOT have been unloaded
+            // (FakeEmbeddingModel stays loaded since unload() is skipped)
+            assertTrue(
+                embeddingModel.isLoaded(),
+                "Unified model should not unload embedding — both share the same model",
+            )
+        }
+
+        @Test
+        @DisplayName("legacy mode unloads embedding before loading LLM")
+        fun legacyModeUnloadsEmbedding() = runTest(testDispatcher) {
+            contentPackRepo.packs = listOf(testPackMetadata)
+            contentRetriever.results = listOf(
+                RetrievalResult("chunk-1", 0.85f, testChunk),
+            )
+            llmEngine.responseTokens = listOf("Hello")
+            embeddingModel.mode = EmbeddingRuntimeMode.DETERMINISTIC_FALLBACK
+            llmEngine.mode = LlmRuntimeMode.NATIVE_UNAVAILABLE
+
+            val engine = createEngine() // unifiedModel = false (default)
+            val results = engine.explain("What are fractions?", "profile-1").toList()
+
+            val complete = results.filterIsInstance<ExplanationResult.Complete>()
+            assertTrue(complete.isNotEmpty(), "Expected pipeline to complete")
+
+            // With legacy mode, embedding model IS unloaded before LLM loads
+            // (FakeEmbeddingModel.unload() sets loaded = false, and FakeLlmEngine
+            // starts with loaded = false so unloadEmbeddingModelIfLlmNotLoaded triggers)
+            assertTrue(
+                !embeddingModel.isLoaded(),
+                "Legacy mode should unload embedding model before LLM loads (AI-08)",
+            )
+        }
+
+        @Test
+        @DisplayName("unified model completes full pipeline with same state transitions")
+        fun unifiedModelEmitsCorrectStates() = runTest(testDispatcher) {
+            contentPackRepo.packs = listOf(testPackMetadata)
+            contentRetriever.results = listOf(
+                RetrievalResult("chunk-1", 0.85f, testChunk),
+            )
+            llmEngine.responseTokens = listOf("Answer")
+            embeddingModel.mode = EmbeddingRuntimeMode.DETERMINISTIC_FALLBACK
+            llmEngine.mode = LlmRuntimeMode.MOCK
+
+            val engine = createUnifiedEngine()
+            val results = engine.explain("test question", "profile-1").toList()
+
+            // Same state transitions as legacy: Thinking → RuntimeStatus → Retrieving → ...
+            assertIs<ExplanationResult.Thinking>(results[0])
+            assertTrue(results.any { it is ExplanationResult.Retrieving })
+            assertTrue(results.any { it is ExplanationResult.Generating })
+            assertIs<ExplanationResult.Complete>(results.last())
         }
     }
 }

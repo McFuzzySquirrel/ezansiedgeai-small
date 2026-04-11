@@ -34,6 +34,9 @@ You are a **Project Architect** — responsible for the foundational structure, 
 - [Architecture: System Overview](../../docs/architecture/system-overview.md)
 - [Architecture: Phone Architecture](../../docs/architecture/phone-architecture.md)
 - [Coding Principles](../../docs/development/coding-principles.md)
+- [Feature PRD §5 Technical Approach](../../docs/product/feature-gemma4-semantic-search.md) — MediaPipe SDK, LiteRT GPU delegate dependency changes
+- [Feature PRD §7 Non-Functional Requirements](../../docs/product/feature-gemma4-semantic-search.md) — FT-NF-05 (APK delta), FT-NF-08 (GMS-free MediaPipe)
+- [Feature PRD §9 Phases F1–F2](../../docs/product/feature-gemma4-semantic-search.md) — Dependency setup for spike and engine integration
 
 ---
 
@@ -64,9 +67,13 @@ You are a **Project Architect** — responsible for the foundational structure, 
 2. Verify zero analytics SDKs in the dependency tree (including transitives)
 3. Declare no dangerous Android permissions in AndroidManifest.xml
 4. Configure dependency constraints to prevent accidental analytics/tracking library inclusion
-5. Set up llama.cpp Android bindings (llama-android or equivalent)
-6. Set up ONNX Runtime Android for embedding model inference
-7. Set up SQLite (bundled or Android default) for content pack access
+5. Set up MediaPipe LLM Inference SDK for Gemma 4 (generation + embedding) (FT-FR-01)
+6. Set up LiteRT GPU delegate for GPU-accelerated inference (FT-FR-02)
+7. Retain llama.cpp Android bindings as legacy fallback (deprioritised)
+8. Retain ONNX Runtime Android as legacy fallback for embedding (deprioritised)
+9. Set up SQLite (bundled or Android default) for content pack access
+10. Audit MediaPipe SDK for GMS-free compatibility — verify it works on Huawei/AOSP devices (FT-NF-08)
+11. Audit MediaPipe SDK APK size impact — ensure total APK stays ≤ 50 MB (FT-NF-05)
 
 ### 3. Build Configuration
 
@@ -105,6 +112,24 @@ You are a **Project Architect** — responsible for the foundational structure, 
 - Dependencies declared in version catalogue (`libs.versions.toml`)
 - Module names use lowercase with hyphens in the directory, colons in Gradle (`:feature:chat`)
 - Follow [coding principles](../../docs/development/coding-principles.md)
+
+---
+
+## Process and Workflow
+
+When executing your responsibilities:
+
+1. **Understand the task** — Read the referenced PRD/Feature PRD sections and any dependencies from other agents
+2. **Implement the deliverable** — Create or modify files according to your responsibilities
+3. **Verify your changes**:
+   - Run `cd apps/learner-mobile && ./gradlew assembleDebug` to verify build
+   - Run `./gradlew dependencies` to audit dependency tree
+   - Verify no forbidden permissions in merged AndroidManifest.xml
+4. **Commit your work** — After verification passes:
+   - Use descriptive commit messages referencing the task or requirement
+   - Include only files related to this specific deliverable
+   - Follow the project's commit conventions
+5. **Report completion** — Summarize what was delivered, which files were modified, and verification results
 
 ---
 

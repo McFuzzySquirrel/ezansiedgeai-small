@@ -138,11 +138,12 @@ class CosineSimilarityRetrieverTest {
 
     // ── Top-K ranking ───────────────────────────────────────────────
 
+    /** Simple scored item for top-K ranking tests. */
+    private class ScoredItem(val id: String, val score: Float)
+
     @Nested
     @DisplayName("Top-K ranking logic")
     inner class TopKRankingTests {
-
-        data class ScoredItem(val id: String, val score: Float)
 
         /** Mimics the ranking logic in CosineSimilarityRetriever.retrieve. */
         private fun rankTopK(

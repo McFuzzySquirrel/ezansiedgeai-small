@@ -38,6 +38,8 @@ import com.ezansi.app.feature.profiles.ProfilesViewModelFactory
 import com.ezansi.app.feature.topics.TopicsScreen
 import com.ezansi.app.feature.topics.TopicsViewModel
 import com.ezansi.app.feature.topics.TopicsViewModelFactory
+import com.ezansi.app.feature.topics.search.SearchViewModel
+import com.ezansi.app.feature.topics.search.SearchViewModelFactory
 
 /**
  * Navigation routes for eZansiEdgeAI.
@@ -148,6 +150,12 @@ fun EzansiNavHost(
                 ),
             )
 
+            val searchViewModel: SearchViewModel = viewModel(
+                factory = SearchViewModelFactory(
+                    contentSearchEngine = container.contentSearchEngine,
+                ),
+            )
+
             // Onboarding: show a tip on first visit to Topics (P2-108)
             val context = LocalContext.current
             val onboardingManager = remember { OnboardingManager(context) }
@@ -160,6 +168,7 @@ fun EzansiNavHost(
             Box {
                 TopicsScreen(
                     viewModel = topicsViewModel,
+                    searchViewModel = searchViewModel,
                     onNavigateToChat = { question ->
                         navController.navigate(
                             EzansiRoute.ChatWithQuestion.createRoute(question),

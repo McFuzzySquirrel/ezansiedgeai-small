@@ -29,19 +29,33 @@ android {
 dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:data"))
+
+    // DEPRECATED: Legacy fallback — remove after real-device Gemma 4 validation
+    // llama.cpp JNI bindings for Qwen2.5-1.5B text generation.
+    // Superseded by MediaPipe GenAI SDK (Gemma 4) below.
     implementation(project(":core:llama"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
 
+    // DEPRECATED: Legacy fallback — remove after real-device Gemma 4 validation
     // ONNX Runtime Android for embedding model inference (all-MiniLM-L6-v2).
+    // Superseded by MediaPipe GenAI SDK (Gemma 4) unified inference below.
     // The OnnxEmbeddingModel uses reflection to load ONNX classes so the app
     // compiles and runs with MockEmbeddingModel even if this is commented out.
     implementation(libs.onnxruntime.android)
 
+    // MediaPipe GenAI SDK for Gemma 4 LLM inference + embedding via LiteRT.
+    // Replaces llama.cpp (generation) + ONNX (embedding) with a unified model.
+    // Apache 2.0 licensed, no GMS dependency, min SDK 24 (our target: 29).
+    implementation(libs.mediapipe.tasks.genai)
+
     testImplementation(libs.junit5.api)
     testRuntimeOnly(libs.junit5.engine)
+    testImplementation(libs.junit4)
+    testRuntimeOnly(libs.junit5.vintage.engine)
+    testImplementation(libs.json)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)
