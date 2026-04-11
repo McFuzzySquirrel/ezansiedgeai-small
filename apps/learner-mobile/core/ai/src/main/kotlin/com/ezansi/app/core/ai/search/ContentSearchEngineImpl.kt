@@ -20,11 +20,14 @@ import com.ezansi.app.core.common.EzansiResult
  * @param contentRetriever The retriever for semantic chunk lookup within a pack.
  * @param getInstalledPackIds Provides the list of currently installed pack IDs.
  *        Accepts a lambda to avoid coupling to the data layer's repository directly.
+ * @param ensureModelLoaded Triggers lazy model loading when the embedding model
+ *        is not yet loaded. Decouples the search engine from model path resolution.
  */
 class ContentSearchEngineImpl(
     private val embeddingModel: EmbeddingModel,
     private val contentRetriever: ContentRetriever,
     private val getInstalledPackIds: suspend () -> List<String>,
+    private val ensureModelLoaded: suspend () -> Unit = {},
 ) : ContentSearchEngine {
 
     override suspend fun search(
@@ -36,11 +39,24 @@ class ContentSearchEngineImpl(
             return EzansiResult.Error("Search query cannot be empty.")
         }
 
-        // 2. Check embedding model readiness
+        // 2. Ensure embedding model is loaded (lazy load on first search)
         if (!embeddingModel.isLoaded()) {
-            return EzansiResult.Error(
-                "Search is not available yet. The embedding model is still loading.",
-            )
+            try {
+                Log.i(TAG, "Embedding model not loaded — triggering lazy load for search")
+                ensureModelLoaded()
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to load embedding model for search", e)
+                return EzansiResult.Error(
+                    "Search is not available yet. The AI model could not be loaded.",
+                    cause = e,
+                )
+            }
+
+            if (!embeddingModel.isLoaded()) {
+                return EzansiResult.Error(
+                    "Search is not available yet. The embedding model is still loading.",
+                )
+            }
         }
 
         return try {

@@ -60,9 +60,9 @@ class GemmaEmbeddingModelTest {
     inner class InitialStateTests {
 
         @Test
-        @DisplayName("is not loaded initially")
-        fun notLoadedInitially() {
-            assertFalse(model.isLoaded())
+        @DisplayName("isLoaded always returns true (hash-based embedding always available)")
+        fun isLoadedAlwaysTrue() {
+            assertTrue(model.isLoaded())
         }
 
         @Test
@@ -105,9 +105,9 @@ class GemmaEmbeddingModelTest {
         }
 
         @Test
-        @DisplayName("isLoaded delegates to provider")
-        fun isLoadedDelegatesToProvider() = runTest {
-            assertFalse(model.isLoaded())
+        @DisplayName("isLoaded returns true regardless of provider state")
+        fun isLoadedAlwaysTrue() = runTest {
+            assertTrue(model.isLoaded())
 
             val modelFile = createFakeModelFile()
             model.loadModel(modelFile.absolutePath)
@@ -283,22 +283,24 @@ class GemmaEmbeddingModelTest {
     inner class ErrorHandlingTests {
 
         @Test
-        @DisplayName("embed throws IllegalStateException when not loaded")
-        fun embedThrowsWhenNotLoaded() = runTest {
-            assertFailsWith<IllegalStateException> {
-                model.embed("What is a fraction?")
-            }
+        @DisplayName("embed works even when provider model is not loaded (hash-based)")
+        fun embedWorksWithoutProviderLoaded() = runTest {
+            // Hash-based embedding should work regardless of model load state
+            val result = model.embed("What is a fraction?")
+            assertEquals(768, result.size) // default dimension
         }
 
         @Test
-        @DisplayName("embed throws with descriptive message when not loaded")
-        fun embedThrowsWithDescriptiveMessage() = runTest {
-            val exception = assertFailsWith<IllegalStateException> {
-                model.embed("test")
-            }
+        @DisplayName("embed produces valid L2-normalised output without model loaded")
+        fun embedProducesValidOutputWithoutModel() = runTest {
+            val result = model.embed("test")
+            // Verify L2 normalisation
+            var sumSquares = 0.0f
+            for (v in result) sumSquares += v * v
+            val magnitude = sqrt(sumSquares.toDouble()).toFloat()
             assertTrue(
-                exception.message?.contains("not loaded") == true,
-                "Exception message should mention 'not loaded', got: ${exception.message}",
+                abs(magnitude - 1.0f) < 0.01f,
+                "Embedding should be L2-normalised, got magnitude: $magnitude",
             )
         }
     }

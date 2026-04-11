@@ -84,11 +84,16 @@ class GemmaEmbeddingModel(
     }
 
     /**
-     * Returns true if the shared model is loaded and ready for embedding.
+     * Returns true if the embedding model is ready for use.
      *
-     * Delegates directly to [GemmaModelProvider.isLoaded].
+     * Since the current implementation uses deterministic hash-based embedding
+     * (MediaPipe GenAI SDK lacks an embedding extraction API), this always
+     * returns `true` — the hash-based path requires no model file.
+     *
+     * When real Gemma 4 embedding is implemented, this should delegate to
+     * [GemmaModelProvider.isLoaded] to gate on actual model availability.
      */
-    override fun isLoaded(): Boolean = modelProvider.isLoaded()
+    override fun isLoaded(): Boolean = true
 
     /**
      * Converts input text into an L2-normalised embedding vector.
@@ -103,16 +108,17 @@ class GemmaEmbeddingModel(
      * @param text The learner's question or search query.
      * @return An L2-normalised embedding vector of the configured dimension.
      * @throws IllegalStateException if the model has not been loaded.
+     *
+     * **Note:** The current hash-based implementation does not actually require
+     * the model to be loaded, so this method will not throw.
      */
     override suspend fun embed(text: String): FloatArray {
-        check(modelProvider.isLoaded()) {
-            "Gemma 4 model is not loaded. Call loadModel() before embed()."
+        if (modelProvider.isLoaded()) {
+            modelProvider.setMode(GemmaModelProvider.ModelMode.EMBEDDING)
         }
 
-        modelProvider.setMode(GemmaModelProvider.ModelMode.EMBEDDING)
-
         val dimension = embeddingDimension()
-        val inference = modelProvider.getInference()
+        val inference = if (modelProvider.isLoaded()) modelProvider.getInference() else null
 
         // TODO(ai-pipeline-engineer): When MediaPipe GenAI SDK adds an embedding
         //  extraction API (hidden-state pooling or a dedicated embedding mode),

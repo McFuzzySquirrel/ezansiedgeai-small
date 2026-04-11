@@ -102,12 +102,14 @@ class TopicsViewModel(
                         }
                     }
 
+                    val mergedTopics = mergeTopicTrees(allTopics)
+
                     _uiState.update {
                         it.copy(
                             isLoading = false,
                             hasContentPacks = true,
-                            topicTree = allTopics,
-                            currentChildren = allTopics,
+                            topicTree = mergedTopics,
+                            currentChildren = mergedTopics,
                             breadcrumb = emptyList(),
                             breadcrumbNodes = emptyList(),
                             selectedTopic = null,
@@ -261,6 +263,30 @@ class TopicsViewModel(
     }
 
     // ── Private helpers ─────────────────────────────────────────────
+
+    /**
+     * Merges topic trees from multiple content packs.
+     *
+     * When two packs share a path (e.g. both have "term1"), their children
+     * are merged recursively and chunk counts are summed. Without this,
+     * LazyColumn crashes on duplicate keys.
+     */
+    private fun mergeTopicTrees(nodes: List<TopicNode>): List<TopicNode> {
+        return nodes
+            .groupBy { it.path }
+            .map { (path, group) ->
+                if (group.size == 1) {
+                    group.first()
+                } else {
+                    TopicNode(
+                        path = path,
+                        name = group.first().name,
+                        children = mergeTopicTrees(group.flatMap { it.children }),
+                        chunkCount = group.sumOf { it.chunkCount },
+                    )
+                }
+            }
+    }
 
     /**
      * Selects a leaf topic and generates suggested questions.

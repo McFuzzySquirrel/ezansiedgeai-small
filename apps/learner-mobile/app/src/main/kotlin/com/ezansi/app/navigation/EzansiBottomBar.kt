@@ -41,9 +41,9 @@ fun EzansiBottomBar(
     ) {
         bottomBarItems.forEach { item ->
             NavigationBarItem(
-                selected = currentRoute == item.route.route,
+                selected = currentRoute?.startsWith(item.route.route) == true,
                 onClick = {
-                    if (currentRoute != item.route.route) {
+                    if (currentRoute?.startsWith(item.route.route) != true) {
                         navController.navigate(item.route.route) {
                             // Pop up to start destination to avoid building up a large back stack
                             popUpTo(EzansiRoute.Chat.route) {
