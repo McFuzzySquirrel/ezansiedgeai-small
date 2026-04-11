@@ -356,17 +356,20 @@ class GemmaModelProvider(
     /**
      * Creates a MediaPipe LlmInference instance via reflection.
      *
-     * Uses the builder API:
+     * Uses the SDK 0.10.33 builder API where model-level options are:
      * ```
      * LlmInference.LlmInferenceOptions.builder()
      *     .setModelPath(modelPath)
      *     .setMaxTokens(contextSize)
-     *     .setTemperature(temperature)
-     *     .setTopK(topK)
-     *     .setRandomSeed(seed)
+     *     .setPreferredBackend(Backend.GPU | Backend.CPU)
      *     .build()
      * LlmInference.createFromOptions(context, options)
      * ```
+     *
+     * Note: temperature, topK, and randomSeed moved to
+     * `LlmInferenceSession.LlmInferenceSessionOptions` in SDK 0.10.33.
+     * The implicit session used by `LlmInference.generateResponse()` uses
+     * sensible defaults.
      */
     @Suppress("TooGenericExceptionCaught")
     private fun createLlmInference(config: GemmaModelConfig): Any {
@@ -379,6 +382,9 @@ class GemmaModelProvider(
         val builderClass = Class.forName(
             "com.google.mediapipe.tasks.genai.llminference.LlmInference\$LlmInferenceOptions\$Builder",
         )
+        val backendClass = Class.forName(
+            "com.google.mediapipe.tasks.genai.llminference.LlmInference\$Backend",
+        )
 
         val builderMethod = optionsClass.getMethod("builder")
         val builder = builderMethod.invoke(null)
@@ -387,12 +393,15 @@ class GemmaModelProvider(
             .invoke(builder, config.modelPath)
         builderClass.getMethod("setMaxTokens", Int::class.java)
             .invoke(builder, CONTEXT_SIZE)
-        builderClass.getMethod("setTemperature", Float::class.java)
-            .invoke(builder, config.temperature)
-        builderClass.getMethod("setTopK", Int::class.java)
-            .invoke(builder, config.topK)
-        builderClass.getMethod("setRandomSeed", Int::class.java)
-            .invoke(builder, config.randomSeed)
+
+        // Set preferred backend via the Backend enum.
+        // Use CPU when GPU is explicitly disabled; otherwise let SDK auto-detect
+        // with DEFAULT to avoid native crashes on devices without GPU support.
+        val backendName = if (config.useGpuDelegate) "DEFAULT" else "CPU"
+        val backendValue = backendClass.getMethod("valueOf", String::class.java)
+            .invoke(null, backendName)
+        builderClass.getMethod("setPreferredBackend", backendClass)
+            .invoke(builder, backendValue)
 
         val options = builderClass.getMethod("build").invoke(builder)
 
