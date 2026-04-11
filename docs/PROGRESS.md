@@ -39,8 +39,10 @@
 - [x] F4.6: Search tests (24d57e5) — edge case tests, navigation tests, ViewModel tests
 
 ## Current Task
-- All automated tasks complete. Real-device validation (F5.7) handed off to user.
+- [x] F5.7: Real-device validation COMPLETED (✅ Pass) — 5 bugs found and fixed
+- [ ] F5.8: Extended validation — TalkBack, preferences, metric system, stress tests
   - See: docs/DEVICE-VALIDATION-CHECKLIST.md
+  - See: docs/DEVICE-TEST-REPORT.md (detailed test report with screenshots)
 
 ## Remaining
 
@@ -86,15 +88,17 @@
 - [x] F5.5: Update architecture docs (@ai-pipeline-engineer) — 60b23b8
 - [x] F5.6: Deprecate old deps (@project-architect) — d3c34d8
 - [x] F5.7: Real-device validation checklist — docs/DEVICE-VALIDATION-CHECKLIST.md
-- [x] F5.7: Real-device validation EXECUTED on vivo V2434 (2026-04-11)
+- [x] F5.7: Real-device validation EXECUTED on vivo V2434 (2026-04-11) — **✅ PASS**
   - SDK 0.10.33 API fix: removed session-level params from model-level options
   - GPU crash fix: Backend.DEFAULT auto-selects CPU on devices without GPU
-  - First on-device AI inference: coherent fraction explanation in ~35s
-  - Conditional pass: core pipeline works, Topics/Search needs manual testing
+  - Topics crash fix: mergeTopicTrees() for duplicate LazyColumn keys
+  - Search embedding fix: GemmaEmbeddingModel.isLoaded() always true for hash-based embedding
+  - Nav bar fix: startsWith() route matching for Chat tab highlight
+  - Full pipeline: search → Ask AI → chat response (46-55s, 302-605 chars)
+  - 5 bugs found and fixed during validation
 
 ## Blockers
-- Topics/Search screen tests blocked by vivo ROM bottom nav gesture interception (adb tap triggers home screen)
-- Manual testing required for semantic search and "Ask AI" flow validation
+- None — core validation passed. Extended testing (TalkBack, preferences, metric system) planned.
 
 ## Notes
 - F1 and F5 require real-device validation (Snapdragon 680-class, 4 GB RAM). Benchmark harness scaffolded here; user runs on hardware.
